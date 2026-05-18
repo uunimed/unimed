@@ -475,11 +475,24 @@
     function showEmptyPage(activeElement = null) {
         const pageName = activeElement ? activeElement.textContent.trim() : '';
         
-        if (pageName === 'ძირითადი სასწავლო მასალები') {
-            document.getElementById('mainContent').innerHTML = `
-                <iframe src="materials.html" style="width:100%; height:85vh; border:none; border-radius:0; background:white;"></iframe>
-            `;
-        } 
+if (pageName === 'ძირითადი სასწავლო მასალები') {
+    fetch('materials.html')
+        .then(response => response.text())
+        .then(data => {
+            // ამოიღეთ iframe-ები და Google Drive-ის შეზღუდვები
+            document.getElementById('mainContent').innerHTML = data;
+            // ხელახლა გაუშვით materials.html-ის JavaScript
+            const scripts = document.getElementById('mainContent').querySelectorAll('script');
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement('script');
+                newScript.textContent = oldScript.textContent;
+                document.body.appendChild(newScript);
+            });
+        })
+        .catch(error => {
+            document.getElementById('mainContent').innerHTML = '<div class="future-message"><h2>❌ შეცდომა</h2><p>გვერდის ჩატვირთვა ვერ მოხერხდა.</p></div>';
+        });
+}
         else if (pageName === 'დამატებითი სასწავლო მასალები') {
             document.getElementById('mainContent').innerHTML = `<div class="future-message"><h2>📚 დამატებითი სასწავლო მასალები</h2><p>აქ განთავსდება დამატებითი მასალები.</p></div>`;
         }
