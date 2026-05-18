@@ -472,11 +472,9 @@
     localStorage.setItem('unimedVisitor', vc);
     document.getElementById('visitorCountSpan').innerText = vc;
 
-    // MAIN FUNCTION - აქ ხდება გვერდების ჩატვირთვა
     function showEmptyPage(activeElement = null) {
         const pageName = activeElement ? activeElement.textContent.trim() : '';
         
-        // თუ "ძირითადი სასწავლო მასალები" არის არჩეული - ჩატვირთე materials.html
         if (pageName === 'ძირითადი სასწავლო მასალები') {
             document.getElementById('mainContent').innerHTML = `
                 <iframe src="materials.html" style="width:100%; height:85vh; border:none; border-radius:0; background:white;"></iframe>
@@ -501,10 +499,8 @@
         }
     }
 
-    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-
     document.getElementById('homeLogo').addEventListener('click', () => {
-        showEmptyPage();
+        document.getElementById('mainContent').innerHTML = '<div class="empty-page"></div>';
         document.querySelectorAll('.dropbtn, .simple-menu-item').forEach(el => el.classList.remove('active-menu'));
     });
 
