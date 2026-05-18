@@ -37,7 +37,6 @@
             min-height: 100vh;
         }
 
-        /* HEADER */
         .top-header {
             display: flex;
             flex-wrap: wrap;
@@ -110,7 +109,6 @@
             border-color: #1b7b62;
         }
 
-        /* MENU PANEL - ხაზები მოშორებული */
         .menu-nav {
             background: #1f3e3a;
             padding: 0;
@@ -251,17 +249,35 @@
             stroke: white;
         }
 
-        /* ცარიელი გვერდის კონტეინერი - არანაირი ბექრაუნდი, პადინგი, საზღვარი */
         .content-panel {
             flex: 1;
             padding: 0;
             background: transparent;
         }
 
-        /* ცარიელი კონტეინერი, სადაც მომავალში კონტენტს დაუმატებთ */
         .empty-page {
             min-height: 60vh;
             background: transparent;
+        }
+        
+        .future-message {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 32px;
+            padding: 32px 38px;
+            border-left: 6px solid #289672;
+            color: #1f4e42;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
+            margin: 20px;
+        }
+        .future-message h2 {
+            font-weight: 700;
+            font-size: 1.7rem;
+            margin-bottom: 12px;
+            color: #146454;
+        }
+        .future-message p {
+            font-size: 1rem;
+            color: #2c6b5c;
         }
 
         .footer-note {
@@ -363,7 +379,7 @@
                 <div class="dropdown-content">
                     <a href="#" data-page="სილაბუსები"><svg viewBox="0 0 24 24" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>სილაბუსები</a>
                     <a href="#" data-page="წინაპირობები"><svg viewBox="0 0 24 24" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>წინაპირობები</a>
-                    <a href="#" data-page="ნომრების ბაზა"><svg viewBox="0 0 24 24" stroke="currentColor"><path d="M4 4h16v16H4z"/><text x="8" y="16" font-size="10" fill="currentColor">#</text></svg>ნომრების ბაზა</a>
+                    <a href="#" data-page="ნომრების ბაზა"><svg viewBox="0 0 24 24" stroke="currentColor"><path d="M4 4h16v16H4z"/></svg>ნომრების ბაზა</a>
                 </div>
             </div>
 
@@ -407,7 +423,6 @@
         </div>
     </div>
 
-    <!-- ცარიელი კონტეინერი - აქ მომავალში დაამატებთ კონტენტს -->
     <div class="content-panel" id="mainContent">
         <div class="empty-page"></div>
     </div>
@@ -457,17 +472,40 @@
     localStorage.setItem('unimedVisitor', vc);
     document.getElementById('visitorCountSpan').innerText = vc;
 
-    // ცარიელი გვერდის ჩვენება - მხოლოდ ცარიელი კონტეინერი
+    // MAIN FUNCTION - აქ ხდება გვერდების ჩატვირთვა
     function showEmptyPage(activeElement = null) {
-        document.getElementById('mainContent').innerHTML = '<div class="empty-page"></div>';
+        const pageName = activeElement ? activeElement.textContent.trim() : '';
+        
+        // თუ "ძირითადი სასწავლო მასალები" არის არჩეული - ჩატვირთე materials.html
+        if (pageName === 'ძირითადი სასწავლო მასალები') {
+            document.getElementById('mainContent').innerHTML = `
+                <iframe src="materials.html" style="width:100%; height:85vh; border:none; border-radius:0; background:white;"></iframe>
+            `;
+        } 
+        else if (pageName === 'დამატებითი სასწავლო მასალები') {
+            document.getElementById('mainContent').innerHTML = `<div class="future-message"><h2>📚 დამატებითი სასწავლო მასალები</h2><p>აქ განთავსდება დამატებითი მასალები.</p></div>`;
+        }
+        else if (pageName === 'საგამოცდო მასალები') {
+            document.getElementById('mainContent').innerHTML = `<div class="future-message"><h2>📝 საგამოცდო მასალები</h2><p>აქ განთავსდება საგამოცდო მასალები.</p></div>`;
+        }
+        else if (pageName === 'სტუდენტებისთვის სასწავლო კონსპექტები') {
+            document.getElementById('mainContent').innerHTML = `<div class="future-message"><h2>📖 სტუდენტებისთვის სასწავლო კონსპექტები</h2><p>აქ განთავსდება კონსპექტები.</p></div>`;
+        }
+        else {
+            document.getElementById('mainContent').innerHTML = '<div class="empty-page"></div>';
+        }
+        
         document.querySelectorAll('.dropbtn, .simple-menu-item').forEach(el => el.classList.remove('active-menu'));
         if (activeElement) {
             activeElement.classList.add('active-menu');
         }
     }
 
+    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
     document.getElementById('homeLogo').addEventListener('click', () => {
         showEmptyPage();
+        document.querySelectorAll('.dropbtn, .simple-menu-item').forEach(el => el.classList.remove('active-menu'));
     });
 
     document.querySelectorAll('.dropdown-content a').forEach(link => {
