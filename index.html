@@ -336,6 +336,37 @@
             .footer-note { flex-direction: column; text-align: center; }
             .footer-contact p { justify-content: center; }
         }
+        /* დაამატეთ materials.html-ის სტილების ბოლოს */
+body {
+    margin: 0;
+    padding: 0;
+    background: #f0f6f9; /* index.html-ის ფონთან შესატყვისად */
+}
+
+.app {
+    height: auto;
+    min-height: 80vh;
+}
+
+.top-bar {
+    background: #fafafa;
+    border-radius: 12px 12px 0 0;
+}
+
+.content-row {
+    height: auto;
+    min-height: 65vh;
+}
+
+.sidebar {
+    background: #ffffff;
+    border-radius: 0 0 0 12px;
+}
+
+.viewer-area {
+    background: #ffffff;
+    border-radius: 0 0 12px 0;
+}
     </style>
 </head>
 <body>
@@ -505,40 +536,23 @@ function showEmptyPage(activeElement = null, pageNameFromLink = null) {
     });
 
 document.querySelectorAll('.dropdown-content a').forEach(link => {
-    link.addEventListener('click', async (e) => {
+    link.addEventListener('click', (e) => {
         e.preventDefault();
         const pageName = link.getAttribute('data-page');
         
         if (pageName === 'ძირითადი სასწავლო მასალები') {
-            // ჩავტვირთოთ materials.html იმავე გვერდზე
-            try {
-                const response = await fetch('materials.html');
-                const html = await response.text();
-                
-                // ამოვიღოთ მხოლოდ <body>-ს შიგთავსი (ან კონკრეტული კონტეინერი)
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const content = doc.querySelector('.app') || doc.body;
-                
-                document.getElementById('mainContent').innerHTML = '';
-                document.getElementById('mainContent').appendChild(content);
-                
-                // გადავატაროთ materials.html-ის სკრიპტები
-                const scripts = doc.querySelectorAll('script');
-                scripts.forEach(oldScript => {
-                    const newScript = document.createElement('script');
-                    if (oldScript.src) {
-                        newScript.src = oldScript.src;
-                    } else {
-                        newScript.textContent = oldScript.textContent;
-                    }
-                    document.body.appendChild(newScript);
-                });
-                
-            } catch (error) {
-                console.error('ვერ მოხერხდა materials.html-ის ჩატვირთვა:', error);
-                document.getElementById('mainContent').innerHTML = `<div class="future-message"><h2>❌ შეცდომა</h2><p>ვერ მოხერხდა გვერდის ჩატვირთვა.</p></div>`;
-            }
+            document.getElementById('mainContent').innerHTML = `
+                <div style="background: #f0f6f9; padding: 20px; border-radius: 0; margin: 0;">
+                    <iframe src="materials.html" style="
+                        width: 100%; 
+                        height: 85vh; 
+                        border: none; 
+                        border-radius: 0;
+                        background: #fafafa;
+                        box-shadow: none;
+                    "></iframe>
+                </div>
+            `;
         } else {
             showEmptyPage(null, pageName);
         }
