@@ -1,0 +1,2551 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width,initial-scale=1" name="viewport"/>
+    <title>სასწავლო მასალები</title>
+    <style>
+        :root {
+            --main-color: #0A4A6E;
+            --year-open-color: #8B0000;
+            --year-open-bg: rgba(139,0,0,0.20);
+            --sidebar-width: 340px;
+        }
+
+        @font-face {
+            font-family: 'MarkGEO';
+            src: url('data:font/woff2;base64,PASTE_WOFF2_BASE64_HERE') format('woff2'),
+                 url('data:font/woff;base64,PASTE_WOFF_BASE64_HERE') format('woff');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            color: var(--main-color);
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 10px;
+            background: #fafafa;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .search-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .search-wrap input {
+            flex: 1;
+            padding: 8px 10px;
+            font-size: 14px;
+            border: 1px solid #0A4A6E;
+            border-radius: 6px;
+            outline: none;
+            color: var(--main-color);
+        }
+
+        .search-wrap input::placeholder {
+            color: #9aa6b0;
+        }
+
+        .viewer-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .viewer-title {
+            font-weight: 700;
+            color: var(--main-color);
+        }
+
+        #viewer-file-name {
+            color: #5B0606;
+            font-size: 14px;
+        }
+
+        .content-row {
+            display: flex;
+            flex: 1;
+            height: calc(100% - 50px);
+        }
+
+        .sidebar {
+            flex: 0 0 var(--sidebar-width);
+            min-width: 260px;
+            background: #fafafa;
+            border-right: 1px solid #e0e0e0;
+            padding: 14px;
+            box-sizing: border-box;
+            overflow: auto;
+        }
+
+        .tree ul {
+            list-style: none;
+            margin: 0;
+            padding-left: 10px;
+        }
+
+        .node {
+            margin: 6px 0;
+        }
+
+        .label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 6px;
+            transition: background .18s, color .18s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .arrow {
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-left: 8px solid var(--main-color);
+            transition: transform .18s, border-left-color .18s;
+            transform-origin: center;
+        }
+
+        .year-label {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--main-color);
+            font-family: 'MarkGEO', Arial, Helvetica, sans-serif;
+        }
+
+        .semester-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--main-color);
+            padding-left: 2px;
+        }
+
+        .file-name {
+            font-size: 14px;
+            color: var(--main-color);
+            text-decoration: none;
+            display: inline-block;
+            padding: 4px 6px;
+            border-radius: 4px;
+        }
+
+        .node.open > .label .arrow {
+            transform: rotate(90deg);
+            border-left-color: var(--year-open-color);
+        }
+
+        .node.year.open > .label {
+            background: var(--year-open-bg);
+        }
+
+        .node.year.open > .label .year-label {
+            color: var(--year-open-color);
+        }
+
+        .children {
+            padding-left: 18px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .node.open > .children {
+            display: block;
+        }
+
+        .file-link:hover {
+            text-decoration: underline;
+        }
+
+        .match {
+            background: rgba(10,74,110,0.10);
+            border-radius: 3px;
+            padding: 0 3px;
+        }
+
+        .viewer-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #viewer-placeholder {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--main-color);
+            opacity: 0.9;
+        }
+
+        iframe#viewer-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+        }
+        
+.divider {
+    width: 4px;
+    background: #0A4A6E;
+    cursor: col-resize;
+    user-select: none;
+}
+.divider:hover {
+    background: #021622;
+}
+
+  .no-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+
+
+/* Hover highlight for all clickable labels and file names */
+.label:hover,
+.file-name:hover {
+    background-color: rgba(10, 74, 110, 0.05); /* very light blue shade */
+    color: var(--main-color);
+    cursor: pointer;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+/* Make file links cover the full row */
+.file-name {
+    display: block;
+    padding: 4px 6px; /* keep padding for spacing */
+}
+
+#close-viewer-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--main-color);
+    margin-left: 8px;
+    user-select: none;
+}
+#close-viewer-btn:hover {
+    color: #8B0000;
+}
+
+  /* close button style */
+  #close-viewer-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--main-color);
+    margin-left: 8px;
+    user-select: none;
+    padding: 4px;
+    line-height: 1;
+  }
+  #close-viewer-btn:hover { color: #8B0000; }
+
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="top-bar">
+            <div class="viewer-header">
+                <div class="viewer-title">არჩეული საგანი:</div>
+                <div id="viewer-file-name"></div>
+                    <button id="close-viewer-btn" title="დახურვა" style="display:none;">✖</button>
+
+            </div>
+        </div>
+
+        <div class="content-row">
+          
+            <aside aria-label="Sidebar with years and materials" class="sidebar" id="sidebar">
+              <div class="search-wrap" role="search" style="margin-bottom:10px;">
+    <input aria-label="Search materials" id="search-input" placeholder="საგნის ძებნა..." type="search"/>
+</div>
+                <nav aria-label="Materials tree" class="tree" id="tree">
+                    <ul>
+                        <li class="node year" data-type="year">
+                            <div class="label" tabindex="0">
+                                <div aria-hidden="true" class="arrow"></div>
+                                <div class="year-label">I კურსი</div>
+                            </div>
+                            <div class="children">
+                                <ul>
+                                    <li class="node semester" data-type="semester">
+                                        <div class="label" tabindex="0">
+                                            <div aria-hidden="true" class="arrow"></div>
+                                            <div class="semester-label">I სემესტრი</div>
+                                        </div>
+                                        <div class="children">
+                                            <ul>
+                                              <!-- Subject 1 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">ანატომია 1</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="124qo5S3lFWqvgKvPZTpDRqv4n3GKJI0_" href="#">ანატომია 1</a></li>
+<li><a class="file-name file-link" data-id="122ufb1-2fkRU40Sc08klCdpbzXSw9Mtk" href="#">საჭმლის მომნელებელი და სასუნთქი სისტემები</a></li>
+<li><a class="file-name file-link" data-id="128YNrdTP2QrlX8H9GRZaKhbjwt0L6gxF" href="#">ანატომია 1 (ატლასი)</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 2 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">გარემოს ჯანმრთელობა</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1-kwf8tr2ACpGu2CkOvmQBd7BS9ieuENT" href="#">4. კვების ჰიგიენა</a></li>
+<li><a class="file-name file-link" data-id="1-lobVaQPmTlzkBZ4Y7IJctOhps2ZgbgJ" href="#">3. წყლის ჰიგიენა</a></li>
+<li><a class="file-name file-link" data-id="1-_cmow9G1sz7jAD0j1JZDsPv1KfakZ01" href="#">1. ჰაერის კონტამინანტები (დამაბინძურებლები)</a></li>
+<li><a class="file-name file-link" data-id="1-SHmDLMhQPiZDx7p4vkiups8AUhw1KAB" href="#">2. ჰაერის ჰიგიენა</a></li>
+<li><a class="file-name file-link" data-id="1-ZrNN9uzFZWRvmCkKTlsiGavwFxAsKms" href="#">1. შესავალი</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 3 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">ინგლისური 1</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="103HHYghfkgTCUe--2g0y7aKDns51_OyU" href="#">Prime Time 3 (წიგნი)</a></li>
+<li><a class="file-name file-link" data-id="107c1cpUsC69isfeJrxAmxX8FTtSmsLqN" href="#">Prime Time 3 (workbook)</a></li>
+<li><a class="file-name file-link" data-id="1-yxM0I529Chckkif7lXLPbXgsoO4v-9P" href="#">medical</a></li>
+<li><a class="file-name file-link" data-id="1-x528OTHnL2y5KdmhASB5i8eT_cIGzU_" href="#">grammarway3</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 4 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">ინფორმატიკა</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="10MFSsSvlBizgsIU1KBmA5TFAjtfyJ8Qp" href="#">2. სურვილის შემთხვევაში</a></li>
+<li><a class="file-name file-link" data-id="10KQMs5abry2rpSalqHOxgd8P_ARsi1Q4" href="#">1. კომპიუტერული აპარატურა და მისი კომპონენტები</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 5 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">კვლევითი უნარ-ჩვევები 1</div>
+</div>
+<div class="children">
+<ul></ul>
+</div>
+</li>
+<!-- Subject 6 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">სამედიცინო ბიოფიზიკის შესავლები</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="13OxTUiw7CHm4YrfrI1nM0Wve1P3xyfRc" href="#">ჰემოდინამიკა</a></li>
+<li><a class="file-name file-link" data-id="13_S6V8SFBLvkm9OXVrHOT6EJp15FDb9Q" href="#">ნერსტი გოლდმანის განტოლება</a></li>
+<li><a class="file-name file-link" data-id="13ad_uhYuDU5UxqFKTeYCw56015ciaPtf" href="#">მოკლე განმარტებები</a></li>
+<li><a class="file-name file-link" data-id="13f4bdxZWr_MA6-sQITkFU9yoahxBwoYQ" href="#">მემბრანა</a></li>
+<li><a class="file-name file-link" data-id="13El9iwq25i5g8Le6KdOYoQIVKZP4E_Yi" href="#">თერმოდინამიკა</a></li>
+<li><a class="file-name file-link" data-id="13EG6aMX9dbhyOjIQeGqH6c2r1UoJy9T5" href="#">ენტროპია</a></li>
+<li><a class="file-name file-link" data-id="131INd40ZUzHssuFQG0yQVos1zpDC5d6x" href="#">დოპლერის ეფექტი</a></li>
+<li><a class="file-name file-link" data-id="133tg_sf-Xjo-xt--9Uhr3wL1uEwNASi5" href="#">N7-ატომის აგებულება</a></li>
+<li><a class="file-name file-link" data-id="139oNZo3gOwR4pA7srZEGPcAMkNWvqnYu" href="#">IV- ულტრაბგერა მედიცინაში</a></li>
+<li><a class="file-name file-link" data-id="12xwhN_f79pyKjACJOvZnGk6YCvV3z0QB" href="#">10. ენერგეტიკა</a></li>
+<li><a class="file-name file-link" data-id="13-fBPJN1fsy2XECYlR9U-wnx7f-MG1cv" href="#">9. კუნთი</a></li>
+<li><a class="file-name file-link" data-id="12m1G6FRBKxbuWxGg6eh1pxVnoo9gfKlN" href="#">8.მოქმედების პოტენციალი</a></li>
+<li><a class="file-name file-link" data-id="12pk64CarV4X_xy073_XWthbQKLDxmBCt" href="#">7. სინათლე და ლინზები</a></li>
+<li><a class="file-name file-link" data-id="12vtJnCpjXnCZs4TFzGf15ezY7klCLNX0" href="#">6. ელექტროობა</a></li>
+<li><a class="file-name file-link" data-id="12vuGiE268FtKCkp2llt73MQNpmKEMA8x" href="#">5. დონანის წონასწორობა</a></li>
+<li><a class="file-name file-link" data-id="12EOtEM0V4gJHUnl7_ztLkmAB2SMjSDaW" href="#">4. რხევები</a></li>
+<li><a class="file-name file-link" data-id="12LFaklvnoMV5y6GzqiDYPe7y_Jk8q8O9" href="#">4. რხევები</a></li>
+<li><a class="file-name file-link" data-id="12lL8uEbDcqLZ-yTfIrwL4EhzX-PGVBrZ" href="#">3. დინამიკა</a></li>
+<li><a class="file-name file-link" data-id="12EJ0h_XaVlnEiubw_HaKhuwCnJvKPlwk" href="#">2. ბროუნის მოძრაობა, დიფუზია</a></li>
+<li><a class="file-name file-link" data-id="12-S9HpomE-NiNoD9qcjkIoC8Nx6IpdQl" href="#">1. კინემატიკა</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 7 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">სამედიცინო ქიმია</div>
+</div>
+<div class="children">
+<ul>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">ორგანული ქიმია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="11S99rCU0qhWxg6xC5-mBO_JYGllBQdSD" href="#">3. ამინმჟავები, ცილები, ლიპიდები, ნუკლეინის მჟავები, ვიტამინები</a></li>
+<li><a class="file-name file-link" data-id="11aSlPmoIXrc6W6Z97GJF-Q6Agd5gjDlx" href="#">2. ნახშირწყლები</a></li>
+<li><a class="file-name file-link" data-id="10iuqGdxO5m7fowZBuITqJXZ08DfdDHB8" href="#">1. ორგანული ქიმია</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">არაორგანული ქიმია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="11Db3ure4y8GYYdpOCbcC375ql93jLEL5" href="#">ლექცია.1-ექვივალენტი</a></li>
+<li><a class="file-name file-link" data-id="11CfCOaOPQTe-f7_2vxiOHoXgGj5qI6Yo" href="#">ლექცია.2- ატომი</a></li>
+<li><a class="file-name file-link" data-id="111wZggWx_PU-dXMV8tEO40880P0i_rgX" href="#">ლექცია.3- ქიმიური-ბმა.-მოლეკულის-აღნაგობა</a></li>
+<li><a class="file-name file-link" data-id="10uITflTd5igOYnCLNB6hllPw_K_bO33J" href="#">ლექცია.4- ჟანგვა-აღდგენა</a></li>
+<li><a class="file-name file-link" data-id="10lOm63BzzUoFG39Y3V6xP2JAW3XIl62p" href="#">ლექცია.5- კომპლექსური-ნაერთები</a></li>
+<li><a class="file-name file-link" data-id="10jZgKlmM8BAyHVobidcJtkqpYwxjpXeE" href="#">ლექცია.6- ხსნარები (ბოლო)</a></li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<!-- Subject 8 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">ციტოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="11sY_jM59A32t-DUtsUYSHoQuyZvy5gDO" href="#">ციტოლოგია</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 9 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">ჯანმრთელობის ხელშეწყობა</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="11mj_UvLogD60MfznpzSHUSHkT2F2vmZ6" href="#">წერისათვის მასალა</a></li>
+<li><a class="file-name file-link" data-id="11peehuPsJCIQpm0tsate0Q4GPMLl1x-K" href="#">Health_Promotion_Strategy_For_Georgia</a></li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li class="node semester" data-type="semester">
+                                        <div class="label" tabindex="0">
+                                            <div aria-hidden="true" class="arrow"></div>
+                                            <div class="semester-label">II სემესტრი</div>
+                                        </div>
+                                        <div class="children">
+                                            <ul>
+                                              <!-- Subject 1 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">ანატომია 2</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="14rF4kSHm1ILiHg2GyA-NxVaRfSB8EKCZ" href="#">2. ანატომია 2 (ატლასი)</a></li>
+<li><a class="file-name file-link" data-id="14n0-h0V4WGm3SU2FBW7XdSqP6RaU3ZM-" href="#">1. ანატომია 2</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 11 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">ბიოქიმის ზოგადი კურსი</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="14PzG9UX7ptak-hjl7ReAwuECk2CpNts7" href="#">ბიოქიმიის ზოგადი კურსი - ბეჭდური</a></li>
+<li><a class="file-name file-link" data-id="14QJ36yMCfIoa0DMt_P9fm8Wk6gzSFhRa" href="#">ბიოქიმიის ზოგადი კურსი - ქსეროქსი</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 12 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">გენეტიკა</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="151CEKS5ezDRoglNkbH7CwMVJ4eTWjMNy" href="#">გენეტიკა</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 13 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">ემბრიოლოგია-ჰისტოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="14ZILoCFVBNewM2JhuWEr5yFPxsXoXHxK" href="#">2. ჰისტოლოგია</a></li>
+<li><a class="file-name file-link" data-id="14ZPoM8g0nDxXZzc9l1gUdZTNhpTF5AOE" href="#">1. ემბრიოლოგია</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 14 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">ზოგადი მიკრობიოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="14noBZnAc5-fpVrlTdn69bjkA33U5XAmV" href="#">1. ზოგადი მიკრობიოლოგია</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 15 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">ზოგადი ფიზიოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="154IL6LoNWUgPWdyH0q77xNu044eqK8s5" href="#">ზოგადი ფიზიოლოგია</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject  16-->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">ინგლისური 2</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="14d1tFUOze5dFooAsDad2bXXcpaItAKa4" href="#">Prime Time 3 (წიგნი)</a></li>
+<li><a class="file-name file-link" data-id="14cAeY49YdNxXnOHE-N2hsnLR6jMKNCoa" href="#">Prime Time 3 (workbook)</a></li>
+<li><a class="file-name file-link" data-id="14Zr-JITjC0Ql9RE9z6ceVZtBeJomLTeU" href="#">medical</a></li>
+<li><a class="file-name file-link" data-id="14fB8hLiQ-kcIL1jJgNuwvP2-Mu9SYoka" href="#">Grammarway3</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 17 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">კლინიკური უნარ-ჩვევები 1</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="15O4UCG-jwJmOgbFxgM1uCfrpSgvL9CBl" href="#">გარკვეული ჯგუფებისთვის</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 18 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">კლინიკური უნარ-ჩვევები 2</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="15CKmWkHK9X1Aq_fiCYbywd6Aifzjg5VK" href="#">კლინიკური უნარ-ჩვევები 2 (არ დასჭირდება ყველა ჯგუფს)</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 19 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">სამედიცინო ეთიკა</div>
+</div>
+<div class="children">
+<ul>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ძირითადი მასალა</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="143WYlrUMlVCeExuJuterNmBMyGYVCHfL" href="#">1. ბიოეთიკა- პრეზენტაციები</a></li>
+<li><a class="file-name file-link" data-id="14-ZdeX0y4ELAybyLQ4Sb-7pyvCaeBJKk" href="#">2. ბიოეთიკა- პრეზენტაციები</a></li>
+<li><a class="file-name file-link" data-id="13x5hQDOKeGP77TtMt7cwvJlyvclcWM1Y" href="#">ევთანაზია</a></li>
+<li><a class="file-name file-link" data-id="13zh7AwnyPsoDPD0WxlkrRB40bjCwL01k" href="#">საკითხები</a></li>
+</ul>
+</div>
+</li>
+<div class="children">
+<ul></ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">დამატებითი მასალა</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="13uFOfnaoMuUnq3AbfksUwwy-0hocNJib" href="#">[Bonnie_Steinbock]_The_Oxford_Handbook_Of_Bioethic(BookFi)</a></li>
+<li><a class="file-name file-link" data-id="145yP8AXrrpCnfWucuJ_zjCg2L7V1YZ7b" href="#">ბიოეთიკა 3 გამოცემა</a></li>
+<li><a class="file-name file-link" data-id="14Jv1clAVAKTJLn6horyweAb37UT4JpVX" href="#">BOOK ETHICS TSU FINAL</a></li>
+<li><a class="file-name file-link" data-id="14DpdKt0VKHy0-CwwHGuorw0bFlbSzLtX" href="#">საჭიროებისამებრ 1</a></li>
+<li><a class="file-name file-link" data-id="14GAZvjeikT6clg-a7Q1MzVideoq0vcy9" href="#">საჭიროებისამებრ 2</a></li>
+<li><a class="file-name file-link" data-id="14JfVF43_5z3rShomPgINBMUoOrvvMVI1" href="#">ექიმი-პაციენტის ურთიერთობა და ეთიკური წესები</a></li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li> 
+</ul>
+</div>
+</li> 
+<li class="node year" data-type="year">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="year-label">II კურსი</div>
+</div>
+<div class="children">
+<ul>
+<li class="node semester" data-type="semester">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">I სემესტრი</div>
+</div>
+<div class="children">
+<ul>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">გულ სისხლძარღვთა სისტემის ბლოკი</div>
+</div>
+<div class="children">
+<ul>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">გულ სისხლძარღვთა სისტემის ანატომია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="16Lf61j6vorRqTcnpmR0AxpAKG6ogkDDX" href="#">1. გულ სისხლძარღვთა სისტემის ანატომია</a></li>
+<li><a class="file-name file-link" data-id="16Ps_UFc315YvSN_svUttw-rF7sKb0n7J" href="#">2. გულ სისხლძარღვთა სისტემის ანატომია (ატლასი)</a></li>
+</ul>
+</div>
+</li>
+<div class="children">
+<ul></ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">გულ სისხლძარღვთა სისტემის ფიზიოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="16Rfl1DYirsXVzhJxcGZV7c5Q02ZAjf9g" href="#">გულ სისხლძარღვთა სისტემის ფიზიოლოგია</a></li>
+</ul>
+</div>
+</li>
+<div class="children">
+<ul></ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">გულ სისხლძარღვთა სისტემის ბიოქიმია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="174_U4Xzic0xD7qfqtazTbVbSLOE6uOZl" href="#">გულ-სისხლძარღვთა სისტემის ბიოქიმია</a></li>
+</ul>
+</div>
+</li>
+<div class="children">
+<ul></ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">გულ სისხლძარღვთა სისტემის ჰისტოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="178DiDXc-lD68m9jxHYh-_8Nb6294gG-v" href="#">გულ სისხლძარღვთა სისტემის ჰისტოლოგია</a></li>
+</ul>
+</div>
+</li>
+<div class="children">
+<ul></ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ნერვული სისტემის ბლოკი</div>
+</div>
+<div class="children">
+<ul>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ნერვული სისტემის ანატომია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="15oFfvUUMzPTrhtReyCYWehq-PdLQtyYj" href="#">1. ნერვული სისტემის ანატომია</a></li>
+<li><a class="file-name file-link" data-id="15o_I4--vsNPLCTlnZBg9GMvCPpYWzlfa" href="#">2. ნერვული სისტემის ანატომია (ატლასი)</a></li>
+</ul>
+</div>
+</li>
+</li><div class="children">
+<ul></ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ნერვული სისტემის ფიზიოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="16-PB5IphNOrkWajJ7rc6NuoO0vgd2BFK" href="#">ნერვული სისტემის ფიზიოლოგია</a></li>
+</ul>
+</div>
+</li>
+<div class="children">
+<ul></ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ნერვული სისტემის ბიოქიმია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="167lnjcuCQOoclUB-OhvYUflJulzcS43N" href="#">ნერვული სისტემის ბიოქიმია (126-201 გვერდი)</a></li>
+</ul>
+</div>
+</li>
+<div class="children">
+<ul></ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ნერვული სისტემის ჰისტოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="16I5s2vAzHDHJp5iOoR_oQi6DOJqRHjM-" href="#">ნერვული სისტემის ჰისტოლოგია (ზოგადი ნაწილი)</a></li>
+<li><a class="file-name file-link" data-id="16HEnz2FP5KJUGnxEwecN0N5CMgP3uZd1" href="#">ნერვული სისტემის ჰისტოლოგია (თვალი და ყური)</a></li>
+</ul>
+</div>
+</li>
+<div class="children">
+</ul>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">მოლეკულური ბიოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="15hVfl94E2Af3APvSLzIzrHL0GlOYm628" href="#">მოლეკულური ბიოლოგია (1)</a></li>
+<li><a class="file-name file-link" data-id="15VflSP-MhzbwDXQ2v8aU6pkvdczGEykN" href="#">მოლეკულური ბიოლოგია (2)</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">სამედიცინო მიკრობიოლოგია, ვირუსოლოგია</div>
+</div>
+<div class="children">
+<ul>
+  <!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">მიკრობიოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="172OBEDCy40Ta1DwRe1pcl7DcRz7yKpPM" href="#">მიკრობიოლოგია</a></li>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ვირუსოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="16wuvs-XBo8yxaiBmT_mrgl7izyOniyqF" href="#">ვირუსოლოგია</a></li>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li class="node semester" data-type="semester">
+                                        <div class="label" tabindex="0">
+                                            <div aria-hidden="true" class="arrow"></div>
+                                            <div class="semester-label">II სემესტრი</div>
+                                        </div>
+                                        <div class="children">
+                                            <ul>
+                                              
+<!-- Subject 1 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">ენდოკრინული სისტემის ბლოკი</div>
+</div>
+<div class="children">
+<ul>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ენდოკრინული სისტემის ანატომია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="18xbdiyFe3Im3-D8_qDdX4eKdkmbNE6As" href="#">ენდოკრინული სისტემის ანატომია</a></li>
+<ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ენდოკრინული სისტემის ფიზიოლოგია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="18S_k3QDwF7_I22ntXrB2uUlN0hT-7ris" href="#">ენდოკრინული სისტემის ფიზიოლოგია</a></li>
+<ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ენდოკრინული სისტემის ბიოქიმია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="18opMvMlsC3deHiaDO7iXY8IkqF7AYblD" href="#">ენდოკრინული სისტემის ბიოქიმია (66-125 გვ.)</a></li>
+  <ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ენდოკრინული სისტემის ჰისტოლოგია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="18egB9GxjVQurBzV06A5zlAku985KfSyi" href="#">1. სისტემის ჰისტოლოგია</a></li>
+<ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">სასუნთქი სისტემის ბლოკი</div>
+</div>
+<div class="children">
+<ul>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">სასუნთქი სისტემის ანატომია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="17ytHrgh2uGMwuTnO1nsRGU0PBobps_iw" href="#">1. სასუნთქი სისტემა - კისრის ანატომია</a></li>
+  <li><a class="file-name file-link" data-id="17uBsHQcmNW1fB7L_eHb6EFmP5I4wOJ4V" href="#">1. სასუნთქი სისტემა - კისრის ატლასი</a></li>
+  <li><a class="file-name file-link" data-id="17z6sKs4bAXWevuh5Rfxs5hbk3mZkopjo" href="#">2. სასუნთქი სისტემა - გულმკერდის ანატომია</a></li>
+  <li><a class="file-name file-link" data-id="17oqYMD_thnOOfyhFDMOxcoTbEZqPkomN" href="#">2. სასუნთქი სისტემა - გულმკერდის ატლასი</a></li>
+  <ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">სასუნთქი სისტემის ფიზიოლოგია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="181g4m4V6v8m7EsdIQDGVhzRaryyfyJaX" href="#">სასუნთქი სისტემის ფიზიოლოგია</a></li>
+  <ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">სასუნთქი სისტემის ბიოქიმია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="18D56nZ26VCT0dX3WCnLjxvvPZeU2a5z0" href="#">სასუნთქი სისტემის ბიოქიმია</a></li>
+  <ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">სასუნთქი სისტემის ჰისტოლოგია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="18F4xg2Jtzf6wGFLI-5wwAxzUnGH7uTcI" href="#">სასუნთქი სისტემის ჰისტოლოგია</a></li>
+  <ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">შარდ-სასქესო სისტემის ბლოკი</div>
+</div>
+<div class="children">
+<ul>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">შარდ-სასქესო სისტემის ანატომია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="17a7WCJVtoMCR1I1X7ZmEMKPP7a_JzWbd" href="#">შარდ-სასქესო სისტემის ანატომია</a></li>
+  <ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">შარდ-სასქესო სისტემის ფიზიოლოგია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="17ZjE6lZR98UtlMhSsjnpcrBpNfoyMtn5" href="#">შარდ-სასქესო სისტემის ფიზიოლოგია</a></li>
+  <ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">შარდ-სასქესო სისტემის ბიოქიმია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="17M9ydw8fL-P6C-VxsB6pHqN44qda3P3B" href="#">შარდ-სასქესო სისტემის ბიოქიმია (391-443 გვ.)</a></li>
+  <ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">შარდ-სასქესო სისტემის ჰისტოლოგია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="17QvzUOyVC3QgIf5IGF4uErfvW3deaLdj" href="#">შარდ-სასქესო სისტემის ჰისტოლოგია</a></li>
+  <ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">საჭმლის მომნელებელი სისტემის ბლოკი</div>
+</div>
+<div class="children">
+<ul>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">საჭმლის მომნელებელი სისტემის ანატომია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="19DY02b6MdsFMZ6vRYQHbMIapPKCUn3Md" href="#">1. საჭმლის მომნელებელი სისტემის ანატომია</a></li>
+  <li><a class="file-name file-link" data-id="19Eoj9rN9qW7eyk6oE1luJR0fadDrV7v3" href="#">1. საჭმლის მომნელებელისისტემის ანატომია (ატლასი)</a></li>
+  <ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">საჭმლის მომნელებელი სისტემის ფიზიოლოგია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="19F4HUfSFh0kMelCjUA_jD1F5Ib-8yFEm" href="#">საჭმლის მომნელებელი სისტემის ფიზიოლოგია</a></li>
+  <ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">საჭმლის მომნელებელი სისტემის ბიოქიმია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="19CZLrv1IOdkbtuujccxSjA_rSb2caASI" href="#">საჭმლის მომნელებელი სისტემის ბიოქიმია (330-390 გვ.)</a></li>
+  <ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">საჭმლის მომნელებელი სისტემის ჰისტოლოგია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="19LAZOavlUzjCMvDguOhiYXU8tD8hXI3W" href="#">საჭმლის მომნელებელი სისტემის ჰისტოლოგია</a></li>
+  <ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">იმუნოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="18xuGdDJhb9dIlkljMK7iYF1x0EV8j24A" href="#">იმუნოლოგია</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ქცევათმეცნიერება</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="17Fh9TKjiMgFnINACQpo7ikdsxiJPfHv1" href="#">ქცევათმეცნიერება</a></li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>  
+<li class="node year" data-type="year">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="year-label">III კურსი</div>
+</div>
+<div class="children">
+<ul>
+<li class="node semester" data-type="semester">
+<div class="label" tabindex="0">
+<div aria-hidden="true" class="arrow"></div>
+<div class="semester-label">I სემესტრი</div>
+</div>
+<div class="children">
+<ul>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ეპიდემიოლოგიური კვლევის მეთოდები</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1AFVOmVu7JTdOrRbEEMDHVFpGFYfgItmO" href="#">ეპიდემიოლოგიური კვლევის მეთოდები</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ზოგადი ქირურგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="19RIIfhXnW5aY-x_KHA_L8ZYPLOUYWNHg" href="#">ზოგადი ქირურგია (ჩხიკვაძე)</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">კვლევითი უნარ-ჩვევები 2</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="19e332cBWl4-st18BmXXCsBfUg6n0EFsX" href="#">კვლევითი უნარ-ჩვევები 2</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">პათოლოგია 1</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="19lp4FjJB24k660zjoffkC348kBOJTL1r" href="#">პათოფიზიოლოგია</a></li>
+<li><a class="file-name file-link" data-id="19oLHP441QIAI72Ljd3K95Cb1dHQldiwX" href="#">პათანატომია</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">პროპედევტიკა 1</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="19wBunMyXUdzQYOuTAokjc0Zv3twq5Lq9" href="#">2. დამატებითი მასალა</a></li>
+<li><a class="file-name file-link" data-id="19yQYWPjUD4fwcgCmWgpYAufWt0Y_poRU" href="#">1. პროპედევტიკა</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">რადიოლოგია 1</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="19jgvo_mS5cAKeD_MqCJQMwi2x84SEouG" href="#">რადიოლოგია 1</a></li>
+</ul>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ფარმაკოლოგია 1</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="19Y4EAK9siRKpFnCzWVhVoOvYvlRsXbFL" href="#">2. ფარმაკოლოგია - კატცუნგი</a></li>
+<li><a class="file-name file-link" data-id="19TsY0YqUfbIckGYJZLuOTzzH8IOJmv37" href="#">1. ფარმაკოლოგია - ლიპინკოტი</a></li>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li class="node semester" data-type="semester">
+                                        <div class="label" tabindex="0">
+                                            <div aria-hidden="true" class="arrow"></div>
+                                            <div class="semester-label">II სემესტრი</div>
+                                        </div>
+                                        <div class="children">
+                                            <ul>
+                                              
+<!-- Subject 1 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">კლინიკური აზროვნების საფუძვლები</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1BW1w-5viCHECfEBIRq3omLqn7GSHvr5u" href="#">სემინარი 1 - სიყვითლე</a></li>
+<li><a class="file-name file-link" data-id="1BVbaAFm7yFoqHh_dDehoTUD9JRV_y1n7" href="#">სემინარი 2 - ტკივილი გულმკერდის არეში</a></li>
+<li><a class="file-name file-link" data-id="1Bcy03O9WtRSxlnCEn_UqOliIimaFQRXY" href="#">სემინარი 3 - დაღლილობა</a></li>
+<li><a class="file-name file-link" data-id="1BcD16sJhoYhNaEilWKUfiTwdlkXscVna" href="#">სემინარი 4 - ხველა</a></li>
+<li><a class="file-name file-link" data-id="1BZ_msX37HXH4Zr1-wFjuP_Ggl9eOCo8J" href="#">სემინარი 6 - გონების კარგვა</a></li>
+<li><a class="file-name file-link" data-id="1BvJ7tuOfIjVcgnk2Zlp0zpdXnjKIOgHw" href="#">სემინარი 7 - ქოშინი</a></li>
+<li><a class="file-name file-link" data-id="1Bq-9mTe7nu_WdcOKO5bbmJHaOB4HVCwg" href="#">სემინარი 8 - ართრალგია</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">კლინიკური უნარ-ჩვევები 3</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1BJzUP1AtW5y_Pg9l6AGCc4hbGOVaJ8G-" href="#">კლინიკური უნარ-ჩვევები 3</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">პათოლოგია 2</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1BBmtFvsA_Zf2utoaIUbkLOxjrVwHIzho" href="#">პათოფიზიოლოგია</a></li>
+<li><a class="file-name file-link" data-id="1BHKM9PCqJBOddZsdlhDB0dNOWWCh4RgX" href="#">პათანატომია 2 (II ტომი)</a></li>
+<li><a class="file-name file-link" data-id="1BBsTDkimcqOfFpiokogN80fP27vQQ82A" href="#">პათანატომია 2 (I ტომი)</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">პროპედევტიკა 2</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1Ao2OLmrmmJZxqpXiO7WbqNz3Sxy574WF" href="#">პროპედევტიკა</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">რადიოლოგია 2</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1AuVoeuUcfHjod04RcVnbg9NchCQrmtPR" href="#">რადიოლოგია 2</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ფარმაკოლოგია 2</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1AVkNOoPHhs7VLLmKrkeXk1armsmUR_0Q" href="#">ფარმაკოლოგია - კატცუნგი</a></li>
+<li><a class="file-name file-link" data-id="1AVZ4q75KN2644BoQZDy4PikfFWP-SuVm" href="#">ფარმაკოლოგია - ლიპინკოტი</a></li>
+
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>  
+<li class="node year" data-type="year">
+    <div class="label" tabindex="0">
+        <div aria-hidden="true" class="arrow"></div>
+        <div class="year-label">IV კურსი</div>
+    </div>
+    <div class="children">
+        <ul>
+            <!-- Subject 1 -->
+            <li class="node subject" data-type="subject">
+                <div class="label" tabindex="0">
+                    <div class="arrow"></div>
+                    <div class="semester-label">ალერგოლოგია, კლინიკური იმუნოლოგია</div>
+                </div>
+                <div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="15tqB5YE6O2kYEnU4U9OvoXcrKEglldnx" href="#">ალერგიული დაავადებები და მათი მართვის სიახლეები</a></li>
+<li><a class="file-name file-link" data-id="15sBnjR0ncNG6KK1KsYujmFjZtLU4tpXf" href="#">ანტისხეულების სტრუქტურა</a></li>
+<li><a class="file-name file-link" data-id="15kfFRyHnPQX9DVfVyPw_jPYd8F1ioqDC" href="#">რინიტი</a></li>
+<li><a class="file-name file-link" data-id="15d3NorPfjecqx9LcLYUcvFjxhKU46Mt2" href="#">ალერგიული რინიტი</a></li>
+<li><a class="file-name file-link" data-id="15PxxthHJCtUvKcuGuN2ZdGgMPF8GmpE5" href="#">იმუნოდეფიციტური დაავადებები</a></li>
+<li><a class="file-name file-link" data-id="157TbLdtbbxvxmfiCFpErsA9LCXWWzAb2" href="#">წამლისმიერი ალერგია</a></li>
+<li><a class="file-name file-link" data-id="1517pPEuA__AO0-oFcXCXFyiW552EJ_1p" href="#">საკვებისმიერი ალერგია</a></li>
+<li><a class="file-name file-link" data-id="14KY9TEUysFwzqJJQXqKafsAal1RJmu7X" href="#">ურტიკარია</a></li>
+<li><a class="file-name file-link" data-id="14sp0BelGHWK8euuJxdF_tMnKh1q_5PxK" href="#">დერმატიტი</a></li>
+<li><a class="file-name file-link" data-id="15CSOuLUArJJX_W4LleauT0eHI8SWYmuf" href="#">ანაფილაქსია</a></li>
+<li><a class="file-name file-link" data-id="14EMoocK4VcDrJ6-RJbwXhyq61-5dipch" href="#">ალერგიული დაავადებები</a></li>
+<li><a class="file-name file-link" data-id="13z5kfObVMzh65aI_fiWlgNQzpCcftQou" href="#">ბრონქული ასთმა</a></li>
+<li><a class="file-name file-link" data-id="13gvmbKFUropvqsu6CmVauOLOuGHXh3au" href="#">იმუნოლოგიის საფუძვლები</a></li>
+<li><a class="file-name file-link" data-id="13buxp0nf9wvvke0SBex89avcwDBa13vN" href="#">იმუნოლოგიის ლექცია</a></li>
+<li><a class="file-name file-link" data-id="13ocfZ-uuYU597EY8--JkZLh_PeK5ui-y" href="#">ალერგია და ალერგიული რეაქციები</a></li>
+<li><a class="file-name file-link" data-id="13owRuVS6ysqY3KhfYYLzuvqcZZqNfsEI" href="#">ალერგიის ტიპები</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ენდოსკოპია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1oztIrRyU64M7S4iyeRSlCSF0mIbe5qSh" href="#">ენდოსკოპია</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ინფექციური დაავადებები</div>
+</div>
+<div class="children">
+<ul>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">წიგნი</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1pfvu0xiYBm8oTfpfcJ90ZqcWvI6rUGhh" href="#">1. ინფექციური დაავადებები 1-89 გვერდი</a></li>
+<li><a class="file-name file-link" data-id="1BtNblJAqwCLwDNCHJh6HdHWOrcnVbiB9" href="#">2. ინფექციური დაავადებები 90-189 გვერდი</a></li>
+<li><a class="file-name file-link" data-id="1c5Rn0sAxTztuPzpcvohw_5icj5SvqRsL" href="#">3. ინფექციური დაავადებები 190-285 გვერდი</a></li>
+<li><a class="file-name file-link" data-id="1yTtOiOjWXXSrHiEH2hSuNWHhhi1x0M0A" href="#">4. ინფექციური დაავადებები 286-385 გვერდი</a></li>
+<li><a class="file-name file-link" data-id="1Y6oEHDIzYLVNWdesvGt-nOt45sSkaajB" href="#">5. ინფექციური დაავადებები 386-485 გვერდი</a></li>
+<li><a class="file-name file-link" data-id="1nG_L6wq5pexst-_nt2fnv6fBvHD-5aif" href="#">6. ინფექციური დაავადებები 486-585 გვერდი</a></li>
+<li><a class="file-name file-link" data-id="1YDJcgkrRUQVmvcHesKxBbGKKg6YEEqyj" href="#">7. ინფექციური დაავადებები 575-588 გვერდი</a></li>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">პრეზენტაციები</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="17IuHsd5cdvChyB3AIwIxaYNVBVekTOMv" href="#">1. ინფექციური დაავადებების შესავალი</a></li>
+<li><a class="file-name file-link" data-id="1XZJHNZBASdIyQcy9zdOHQgrDRHQ1D0n5" href="#">2. ინფექციური დიარეა</a></li>
+<li><a class="file-name file-link" data-id="18o94HQqQBhnzP5em-BMXxkPLeS5arJ_y" href="#">3. ანთებით მიმდინარე დიარეა (შიგელოზი, ეშერიხიოზი)</a></li>
+<li><a class="file-name file-link" data-id="198Hk4KjgUICXy8bbbYZMbWbQwPL3H1-s" href="#">4. ანთებით მიმდინარე დიარე (ამებიაზი, კლოსტრ. დეფიცილე, კამპილობაქტერია)</a></li>
+<li><a class="file-name file-link" data-id="199mlBgXw11SU4LBDPMy6u9FdkpkDyrTw" href="#">5. არაანთებითი დიარეა (ქოლერა)</a></li>
+<li><a class="file-name file-link" data-id="19EjriLh6cu5zmgBLNZNKTp2wRMeYv_Wg" href="#">6. არაანთებითი დიარეა (საკვებისმიერი ტოქსიკოინფექციები)</a></li>
+<li><a class="file-name file-link" data-id="19Z1ZuZFCn2oEJquVs1pO5ptEXjWeHnqB" href="#">7. არაანთებითი დიარეა (ვირუსული დიარეა)</a></li>
+<li><a class="file-name file-link" data-id="1AAitX7smbV72ZfyNQnjSebamY1zaLQL8" href="#">8. ინფექციური მონონუკლეოზი</a></li>
+<li><a class="file-name file-link" data-id="19qBkvc3e3gw2mMyuMecYBX4-JgJGqpqm" href="#">8. ჰერპესის ჯგუფი</a></li>
+<li><a class="file-name file-link" data-id="1AXqCSi3dVwC36saHfwHUHQ_o4wUKQut4" href="#">8. ჩუტყვავილა</a></li>
+<li><a class="file-name file-link" data-id="1AalmWthsuzgTqnBT1RZcldk2wb2V-Hfr" href="#">8. ჰერპეს ზოსტერი</a></li>
+<li><a class="file-name file-link" data-id="1AiLpj0jnkTGbNu87nQV9q3Z5ClrXyzHL" href="#">9. Covid 19</a></li>
+<li><a class="file-name file-link" data-id="1AtqIaWK9-W6GQbScGb1ikKety76qIbnE" href="#">10. გრიპი</a></li>
+<li><a class="file-name file-link" data-id="1AuXs5IVm8bVwDA-M7qqd7ACLUwpjb69m" href="#">11. ვირუსული ჰეპატიტები</a></li>
+<li><a class="file-name file-link" data-id="1BFGAjye0HffaYFslG_XBK9pZq__dO4s2" href="#">12. წითურა</a></li>
+<li><a class="file-name file-link" data-id="1BQBaXC4onoAeBq7RESc7sp8wf4x04t9h" href="#">12. წითელა</a></li>
+<li><a class="file-name file-link" data-id="1BiMpCXB0tRxkkqp0QyE5BBcyVsluGStr" href="#">13. ჰეპატიტის B, D ვირუსი</a></li>
+<li><a class="file-name file-link" data-id="1C12T9PEvwLbo1bWVICVxlbapjV1Dx-G0" href="#">14. C ჰეპატიტი</a></li>
+<li><a class="file-name file-link" data-id="1BrkIydfh94oqubo-EiXzN_vMU0MQyV1S" href="#">14. C ჰეპატიტის მკურნალობა</a></li>
+<li><a class="file-name file-link" data-id="1Cb2wy76oT-_ajlUduW7l2TtjNI2TOalI" href="#">15. აივ ინფექცია</a></li>
+<li><a class="file-name file-link" data-id="1CKEhyM50nBDMWjEFQ2yRxn2CiLc2P3bq" href="#">15. აივ ინფექცია</a></li>
+<li><a class="file-name file-link" data-id="1Czar6GT3tXOI8lYhKZ5vG94VPP2vKSS7" href="#">16. ყირიმ კონგოს ჰემორაგიული ცხელება</a></li>
+<li><a class="file-name file-link" data-id="1D-WcQy2CFe2O8zWFULiZ3G5yZ8zszLri" href="#">17. შავი ჭირი</a></li>
+<li><a class="file-name file-link" data-id="1D79kU4bqYeObCQuH-8MtKjZqW-JjoHjZ" href="#">18. ჯილეხი</a></li>
+<li><a class="file-name file-link" data-id="1DQvtw7YII9C31Ewmj-e-6BkLp1ypMyZb" href="#">19. ბრუცელოზი</a></li>
+<li><a class="file-name file-link" data-id="1ZiqfoXRemh9sOA2OKESEu2rZ8iXfQ2UY" href="#">20. ცოფის ვურუსი</a></li>
+<li><a class="file-name file-link" data-id="1DYM24V7adybHwN2DCF05e13LEQ7lFlu9" href="#">21. მენინგოკოკური ინფექცია</a></li>
+<li><a class="file-name file-link" data-id="1Dm0jRn_txYkBobFJvNf5HmSPbQC9ythp" href="#">22. ტეტანუსი</a></li>
+<li><a class="file-name file-link" data-id="1DpJ6HK349GjdBAIQhaSefGCRN67PZWm6" href="#">23. ბოტულიზმი</a></li>
+<li><a class="file-name file-link" data-id="1Dz0WBFOVB0fYt0hqB_jZldncGjqC63mG" href="#">24. დიფტერია</a></li>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">კვლევის უნარ-ჩვევები 3</div>
+</div>
+<div class="children">
+<ul></ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">კლინიკური უნარ-ჩვევები 4</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1Pos2MjKEuLKBTv8fHbK2aVPekX2erjFp" href="#">სისტემის აწყობა და პერიფერიული ვენის კათეტერიზაცია</a></li>
+<li><a class="file-name file-link" data-id="1xhAOLhbiPFjFSmVOqCvZA6yJuHd7H8Xl" href="#">სიცოცხლის შენარჩუნების ბაზისური ალგორითმი</a></li>
+<li><a class="file-name file-link" data-id="1wfQ6ZzVssqiYmnGXH-YKObB4CuGPPukw" href="#">ტრავმული დაზარალებულის დათვალიერება</a></li>
+<li><a class="file-name file-link" data-id="114MD0pWeAKSJ3hRVSEQhiHsP8dV6u5gO" href="#">შარდის ბუშტის კათეტერიზაცია</a></li>
+<li><a class="file-name file-link" data-id="162lbcJhojscpWti2ZtBnscAj1FfFbFIu" href="#">სასუნთქი გზების გამავლობისა და სუნთქვის უზრუნველყოფის მეთოდები</a></li>
+<li><a class="file-name file-link" data-id="15t085hXxjoBpXSmkzgk9gJdFXy-4pfkB" href="#">ნაზო-გასტრალური ზონდირება</a></li>
+<li><a class="file-name file-link" data-id="19XPihY1P4iVZvxoGp1ddJvaIF6BBWH7Z" href="#">მედიკამენტების დოზირება</a></li>
+<li><a class="file-name file-link" data-id="1L1bXA8p_IDqwjueOyL4itJQTv7nVwvmx" href="#">ინექციები</a></li>
+<li><a class="file-name file-link" data-id="1CBXlOcruHge7ye1xf2M14VuN7UC53UvO" href="#">ზემო სასუნთქი გზების ობსტრუქცია უცხო სხეულით</a></li>
+<li><a class="file-name file-link" data-id="1uBXrN2NBzvX3XYP2Q6lf3R32FQn221wK" href="#">ენდოტრაქეული ინტუბაცია</a></li>
+<li><a class="file-name file-link" data-id="1MNkMG1VZYqvr6TLuWlRLvp-tZPk8ZISh" href="#">გულის გაჩერების ალგორითმი</a></li>
+<li><a class="file-name file-link" data-id="1nYHiCP9jgh1oqZd2su3lKQNZ93hZWlFQ" href="#">გულ-ფილტვის რეანიმაცია მოზრდილებში, ბავშვებში და ჩვილებში</a></li>
+<li><a class="file-name file-link" data-id="1lnyjvMNnAnEp7pTUgbmAq8x-OcCHGkcT" href="#">ამოცანები მედიკამენტების დოზირებაზე</a></li>
+<li><a class="file-name file-link" data-id="1QEWYxGTFLl3y1p-6p4_-9QFrJdSur97x" href="#">აგდ</a></li>
+<li><a class="file-name file-link" data-id="1TIhDq9gVnIwqpio50upLhkd3TkvD53xg" href="#">გუნდური მუშაობის პრინციპები</a></li>
+<li><a class="file-name file-link" data-id="1ZnYP58XzftrOlRb7Mc_MNY0wPfCIZ2Gy" href="#">BLS &amp;ACLS Surveys, ECG int.</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">კლინიკური ფარმაკოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="169yHEy6XHmMdfIorTG0CfJczaozMzeqJ" href="#">კლინიკური ფარმაკოლოგია</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">პილორულ ჰელიკობაქტერიასთან ასოცირებული დაავადებები</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1EpP3Uun625Y-oiH8xf4wDowKS3XAKUIJ" href="#">H. Pylori და ჰემატოლოგიური დარღვევები</a></li>
+<li><a class="file-name file-link" data-id="1EfbJLwxFSefoXynmK0bfHPBFXV0M03uK" href="#">H. Pylori და ონკოპრევენცია</a></li>
+<li><a class="file-name file-link" data-id="1EZGmyNylLjvH_9yYbtD29sNgS-XfsBJF" href="#">ჰელიკობაქტერიის-ექსტრაგასტრალური-ეფექტები</a></li>
+<li><a class="file-name file-link" data-id="1E_7MGlAzO6Btqfkec--2Z4t9qGnPCtPj" href="#">რეფლუქს დაავადება</a></li>
+<li><a class="file-name file-link" data-id="1EYKSTPKHX13N7OLHdAw2ugESlFaIiV0J" href="#">ქრონიკული გასტრიტი</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">საზოგადოებრივი ჯანდაცვა</div>
+</div>
+<div class="children">
+<ul>
+  <!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">წიგნი</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1HYl5GY_o-ZcHry3V4RVL5Nkbs3WUnIdR" href="#">საზოგადოებრივი ჯანდაცვა</a></li>
+</div>
+</li>
+<!-- Subject 20 -->
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">პრეზენტაციები</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1-OrCpbCo9MVFJbsuTTnI2E9_6H3ZFEKI" href="#">1. შესავალი</a></li>
+<li><a class="file-name file-link" data-id="1-Ik-b-nc6m0fVCp3lNuXQypM4VzKgVxB" href="#">2. ჯანმრთელობის დაცვის სისტემა</a></li>
+<li><a class="file-name file-link" data-id="1-KQIVALk19HWsfXlAy6306GPBm__Z4mk" href="#">4. ლიდერობა</a></li>
+<li><a class="file-name file-link" data-id="1-f3qcYLLlv59yzdAS-Izl6YgYQyNZDOH" href="#">6. სადაზღვევო ბაზრის განვითარების ტენდენციები</a></li>
+<li><a class="file-name file-link" data-id="1-NwPa7OrA1Jc8_RHPQOyazKv_Of_X-HR" href="#">6. დაზღვევა</a></li>
+<li><a class="file-name file-link" data-id="1-TPY8o4ZnsMTUtA22C4d6dyp-aI7Y-s6" href="#">7. გლობალური ჯანმრთელობა</a></li>
+<li><a class="file-name file-link" data-id="1-ao1g7buS27vPOVJckhpHNvGZ8vDW2nF" href="#">8. რეზისტენტული ტუბერკულოზის პრობლემა საქართველოში და მისი გადაჭრის გზები</a></li>
+<li><a class="file-name file-link" data-id="102nWmGg1S5aJomnP98owzSR8CEuFBOKw" href="#">9. პირველადი ჯანდაცვის სისტემა</a></li>
+<li><a class="file-name file-link" data-id="106_cZ0s9nHHQQCRe_qVcRvjhAiP-Y_nq" href="#">10. გადაუდებელი დახმარება</a></li>
+<li><a class="file-name file-link" data-id="10960aKTRlH6RxFblz9_z43M-c2sLdg7C" href="#">11. სტაციონარული დახმარება</a></li>
+<li><a class="file-name file-link" data-id="10IvYPhYRQjq5hmRAgLHTsx6fj_-pSR3U" href="#">12. მედია და ჯანმრთელობა</a></li>
+<li><a class="file-name file-link" data-id="10ZxdaGijoGnFUIvOYMhxKZDqMLSD8E-p" href="#">12. ფარმაცევტული საქმიანობის განვითარება</a></li>
+<li><a class="file-name file-link" data-id="10efCLobyspBeT2YiSQeQcU_ZOU2piA9L" href="#">13. ჯანმრთელობის დაცვის სახელმწიფო პროგრამები</a></li>
+<li><a class="file-name file-link" data-id="10jMHD7gwvL0G7KZ3EHRGONrgn-vdgvqc" href="#">14. საავადმყოფოს და სამედიცინო დაწესებულებების დაგეგმარება და სტანდარტები</a></li>
+<li><a class="file-name file-link" data-id="1Qcr8gy5KZf9_SYDkdEkT3K1HzGGYi1bx" href="#">15. მენეჯმენტი</a></li>
+<li><a class="file-name file-link" data-id="12adr9PE-dZ8TQMU2sDC226vXf-rDxpEP" href="#">19. გუნდი</a></li>
+<li><a class="file-name file-link" data-id="12aYeMqA8NJgGjdgBzxUtQpjR3FuRw-Zw" href="#">20. გუნდი</a></li>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">სამედიცინო ფსიქოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1EePPVW2GLHh7qA-wWAKcLPYBGDvNzyDG" href="#">სამედიცინო ფსიქოლოგია</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ფთიზიატრია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1FQCmFP1KmYkPzHBWzSs4-z8ZOOMDW1Uk" href="#">ზოგადი ინფორმაცია ტუბერკულოზის შესახებ</a></li>
+<li><a class="file-name file-link" data-id="1Fmd_bGlPLFP8uEZ_bVU_wEwSK7i-FCU7" href="#">ფილტვგარეთა ტუბერკულოზის შემთხვევათა გამოვლინება</a></li>
+<li><a class="file-name file-link" data-id="1FwcwRNQGQs7thI2Xv6aDckeNwLi790Wp" href="#">ტუბერკულოზის შემთხვევათა გამოვლინება</a></li>
+<li><a class="file-name file-link" data-id="1Fh8Y4njhfIip3YNNfxaOTGr19Ye7NK5D" href="#">ტუბერკულოზის შემთხვევაა კლასიფიციკაციები</a></li>
+<li><a class="file-name file-link" data-id="1FelcVBYjDcimMOLA1ZWC_potFi1RKBJk" href="#">ტუბერკულოზის მკურნალობა</a></li>
+<li><a class="file-name file-link" data-id="1G3TSJ4-YxTE2MW53XA1kOT3wnbJaiY1L" href="#">ტუბერკულოზის დიაგნოსტიკა</a></li>
+<li><a class="file-name file-link" data-id="1GDXJrQnSm8g2MTnrjXmKL6IBXcr5Kgs0" href="#">ტუბერკულოზის ბაქტერიოლოგიური დიაგნოსტიკა</a></li>
+<li><a class="file-name file-link" data-id="1FQsSk49uMJ_C3k_uV0kDnrTbMQeSCOSS" href="#">ლატენტური ტუბერკულოზი</a></li>
+<li><a class="file-name file-link" data-id="1GQel8R_18qK8uEBjdFTJPWsoybNpRDPv" href="#">თანამედროვე მიდგომები</a></li>
+<li><a class="file-name file-link" data-id="1GFm_MOvQXCfvNwX0mlOP_zdDxhK_DreG" href="#">ტუბერკულოზი - საზოგადოებრივი ჯანდაცვის პრობლემა ეპიდემიოლოგია მსოფლიოსა და საქართველოში</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ქირურგია 1</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="10oc-s_72nEw9IAYPrFX2wwAArwIpROCK" href="#">ქირურგია 1 - კუზინი</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">შინაგანი მედიცინის ბლოკი 1</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1bUTPgFnLZK8RRMLrGG-FUP6Eh0WE37qe" href="#">1. შინაგანი სნეულებანი - ემუხვარი, I ტომი</a></li>
+<li><a class="file-name file-link" data-id="18WpfyhLpuY6bx716VJ_QPzlA8jzlU2gJ" href="#">2. შინაგანი სნეულებანი - ემუხვარი, II ტომი</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">შინაგანი მედიცინის ბლოკი 2</div>
+</div>
+<div class="children">
+<ul>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ენდოკრინოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="133DNiCpRGgxfExLDCqhysC05fBzF6SYB" href="#">5. შაქრიანი დიაბეტი</a></li>
+<li><a class="file-name file-link" data-id="12vZ2MFqIB0xfhASW5aT-0ZosTF-HfqOv" href="#">4. ჰიპოფიზის პათოლოგიები ნაწილი მეორე</a></li>
+<li><a class="file-name file-link" data-id="12b0XwqeBFB_6Z_LR3KOmFjOU_L05ejLi" href="#">4. ჰიპოფიზის პათოლოგები ნაწილი პირველი</a></li>
+<li><a class="file-name file-link" data-id="12cKbVohpN1p0GPRst3RwS-U11eZwAjcs" href="#">4. ჰიპოფი-ჰიპოთალამუსის ღერძის კონტროლი</a></li>
+<li><a class="file-name file-link" data-id="13QD3mYpb-N-HIGeGwOo5TTLgH6qqbiuY" href="#">1. პირველადი ალდოსტერონიზმი</a></li>
+<li><a class="file-name file-link" data-id="13GGm_99GocnAGm0aDg4YnNXor61I_Z88" href="#">1. თირკმელზედა ჯირკვლის ანატომია, პათოლოგიები</a></li>
+<li><a class="file-name file-link" data-id="103Y_39nul8AB09c4BPRol4VpyAhdF2tP" href="#">0. შინაგანი მედიცინა - ენდოკრინოლოგია; დედოვი</a></li>
+<li><a class="file-name file-link" data-id="129ymOl-VXdy-csv0GWWxasMELekI7Kwk" href="#">3. ფარისებრი ჯირკვლის პათოლოგიები</a></li>
+<li><a class="file-name file-link" data-id="12XDFHg_-TkZrF23558KIIC38crqZu-37" href="#">3. ფარისებრი ჯირკვლის ანატომია ფიზიოლოგია</a></li>
+<li><a class="file-name file-link" data-id="12TA1WX4rpDiQllKixoQ3gXRfigIlcw9X" href="#">3. აუტოიმუნური თირეოიდიტი</a></li>
+<li><a class="file-name file-link" data-id="1262muAh1EpCG_6Qm6oOwy0GEuBz7uNsz" href="#">2. ფეოქრომოციტომა</a></li>
+<li><a class="file-name file-link" data-id="129NQEkHYshoTQi0OCZtU5nbiw4FhpRn1" href="#">2. თირკმელზედა ჯირკვლის უკმარისობა</a></li>
+<li><a class="file-name file-link" data-id="1347m8KHnVJ6xEhioDZaAcTuikZL7mnu3" href="#">1. იცენკო-კუშინგის დაავადება</a></li>
+<li><a class="file-name file-link" data-id="12X1hVedXjZGdYioKaMpF5tkHaI3wSjhQ" href="#">1. ენდოკრინოლოგია- როგორც საგანი</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">რევმატოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="10PNoEka82YWK480lVPv_FMxBTzbuE-B7" href="#">1. შესავალი</a></li>
+<li><a class="file-name file-link" data-id="10_9PA4n6b9q1nBLMcEGiX5BJysB_5Mxy" href="#">2. რბილი ქსოვილები</a></li>
+<li><a class="file-name file-link" data-id="10k7ra65EO8wuphsVp9WVWi2BKrGiZZjH" href="#">3. ოსტეოართრიტი</a></li>
+<li><a class="file-name file-link" data-id="10roPAtUhE1P8c0V4_eQKr3bOwaXGsPLn" href="#">4. რევმატოიდული ართრტი</a></li>
+<li><a class="file-name file-link" data-id="10xdGUaGdewPPPQ6ocDIRcQDX1nlDRui-" href="#">5. სერონეგატიული სპონდილოართრტი</a></li>
+<li><a class="file-name file-link" data-id="11XWvr8Ey9ijqgbD8Jldn9j274OLB2bdh" href="#">6. წითელი მგლურა, აფს</a></li>
+<li><a class="file-name file-link" data-id="11btpgc1QDllFuvOgnegtabU3ppziVgxS" href="#">7. SSD DM</a></li>
+<li><a class="file-name file-link" data-id="11crwGJx8e9RMi4dVhQt5LBCZjYEHdEz-" href="#">8. რევმატიზმი</a></li>
+<li><a class="file-name file-link" data-id="11nx0a5FybSBc4QfNy9QRQEurFx3pDN5Y" href="#">9. პოდაგრა</a></li>
+<li><a class="file-name file-link" data-id="11yGWS-swUn1r8biYngaeLYHosztV947H" href="#">10. სისტემური ვასკულიტი</a></li>
+<li><a class="file-name file-link" data-id="11zYEOAM_-xTO9ScSIuacv7F50axLwZyc" href="#">11. ოსტეოპოროზი</a></li>
+</ul>
+                                                </div>
+                                              </li>
+                                            </ul>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+
+                        <!-- Added V კურსი here -->
+                        <li class="node year" data-type="year">
+                            <div class="label" tabindex="0">
+                                <div class="arrow"></div>
+                                <div class="year-label">V კურსი</div>
+                            </div>
+                            <div class="children">
+                                <ul>
+                                    <li class="node subject" data-type="subject">
+                                        <div class="label" tabindex="0">
+                                            <div class="arrow"></div>
+                                            <div class="semester-label">ბავშვთა ნევროლოგია</div>
+                                        </div>
+                                        <div class="children">
+                                            <ul>
+                                                <li><a class="file-name file-link" data-id="1FCZkoIwo8UbPQeW9eyphvwxMsChM2dFK" href="#">ლექცია 1</a></li>
+                                                <li><a class="file-name file-link" data-id="1s6Axz41gZpWJcQbjy0dUNrmJWlUQdT3X" href="#">ლექცია 2</a></li>
+                                                <li><a class="file-name file-link" data-id="1mnpTMW38KAnqKUo9xNGjB7lzheD7Fm1C" href="#">ლექცია 3</a></li>
+                                                <li><a class="file-name file-link" data-id="1SoMXtP3dO0bTR6KNXbTyGEOtuuL3bpU1" href="#">ლექცია 4</a></li>
+                                                <li><a class="file-name file-link" data-id="1yPPVGlNh_Y89vSbBZmQUic0xjXIYC3lg" href="#">ლექცია 5</a></li>
+                                                <li><a class="file-name file-link" data-id="18o9pa6qSDmZzIGglZecC7jL536n45OuH" href="#">ლექცია 6</a></li>
+                                                <li><a class="file-name file-link" data-id="1CzjIBH-XvuXB7EmSGjl7XbF8mJAKv-xd" href="#">ლექცია 7</a></li>
+  </ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ბავშვთა ქირურგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1IPgI_9znAl4qEY6BCSGmE5U1lW_YBBjv" href="#">საყლაპავის ატრეზია</a></li>
+<li><a class="file-name file-link" data-id="1IemgZ8r4kjDRMDJjV_Esu6640oPMrEM3" href="#">თიაქარი</a></li>
+<li><a class="file-name file-link" data-id="1IbizfdT6yE-10eZ9pCuPxo6KADWqOxaG" href="#">თიაქრები</a></li>
+<li><a class="file-name file-link" data-id="1Xi3W0x4T7HH8eJlFCqQJs33Ut33ugK7N" href="#">ბავშვთა ქირურგია - კუტუბიძე</a></li>
+<li><a class="file-name file-link" data-id="1IhzD3hsbyuHj58fnrUhb6NbQQXY34_bl" href="#">ინფანტილური ჰიპერტროფული პილოროსტენოზი</a></li>
+<li><a class="file-name file-link" data-id="1IvLOJ3Pr0GzbFTAdgBs_ikXbY-HPZrPY" href="#">ჰირშპრუნგის დაავადება</a></li>
+<li><a class="file-name file-link" data-id="1IwXRheggrkmqQ7fBS37_pHp4ZXwUZ9B1" href="#">გაუვალობა ბავშვებში</a></li>
+<li><a class="file-name file-link" data-id="1J6v6UfYJI_rN7VhNa30p_RN2uG-TVbPg" href="#">აპენდიციტი</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ეპიდემიოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1qC4E9MwAwFf4-fuQSq_RIKYDU4ky5u0W" href="#">0. Essential Medical Statistics</a></li>
+<li><a class="file-name file-link" data-id="1JbwztDTU_sU8AW4ti9oO2o5e859qb9mf" href="#">0. Principles of Epidemiology (CDC)</a></li>
+<li><a class="file-name file-link" data-id="1t9k7MBcrv37z9OcHZt668gowMKapnbGf" href="#">19. ტულარემია</a></li>
+<li><a class="file-name file-link" data-id="1jhxl_cTQGVRDH0CukrO0jDO1dFE1Eppe" href="#">18. შავი ჭირი</a></li>
+<li><a class="file-name file-link" data-id="1Nmfyc7cRLCKy9vIE5EijWFoFDxfjJ2vz" href="#">17. ყვავილი</a></li>
+<li><a class="file-name file-link" data-id="1g-QIKIgLKgCO5KXLNCxsVnhiNRC1kioL" href="#">16. ბოტულიზმი</a></li>
+<li><a class="file-name file-link" data-id="1Xq7rJXBYYTgi-v09u-B-UyUUvWINil9a" href="#">15. ჯილეხი</a></li>
+<li><a class="file-name file-link" data-id="1Su1aqickG04yBlhSRaW22GJrSRnCL1ux" href="#">14. ბრუცელოზი</a></li>
+<li><a class="file-name file-link" data-id="1MfV-EPYB6q6WMh8BkxVSWCOSx6AapS44" href="#">13. ბიოტერორიზმი</a></li>
+<li><a class="file-name file-link" data-id="1yfjxx5HfQH-6skdjHH_2IVlx1dIYFsaK" href="#">11. მონაცემთა პრეზენტაცია, შესავალი</a></li>
+<li><a class="file-name file-link" data-id="1MM40jMngwqEdOt7-QiyOJlYvzhQ6xaeh" href="#">12. სტატისტიკის შესავალი</a></li>
+<li><a class="file-name file-link" data-id="1CeIRXx8VJxRh9Cc-ladiIWz8x8SUocGE" href="#">10. შემთხვევის განსაზღვრა, დეფინიცია</a></li>
+<li><a class="file-name file-link" data-id="1oQzyPPw4smlpc8QS-PvJ8c1VuwcsbOh1" href="#">9. რეაგირებისა და კონტროლის ღონისძიებები</a></li>
+<li><a class="file-name file-link" data-id="1n_CCCAOcpac3VAj8PZfcoiD8P8a3yqZ4" href="#">8. ჰიპოთეზის ფორმირება და შეფასება</a></li>
+<li><a class="file-name file-link" data-id="13NoqEizcqqp-5Hfba745iudZEPA6m9nb" href="#">7. აფეთქების კვლევა</a></li>
+<li><a class="file-name file-link" data-id="1hgCGDMTLdMxCMHrVRwvHmcjFTY_WG-5T" href="#">6. განფენის საზომები</a></li>
+<li><a class="file-name file-link" data-id="1Aft1RJmhjUGkkLniIpS8IvtOMU4TgsLw" href="#">5. ცენტრალური მდებარეობის საზომები</a></li>
+<li><a class="file-name file-link" data-id="1aasSNI-MVBkjr9b5s_fTPFvFXh8XJuk7" href="#">4. ეპიდზედამხედველობის მონაცემების ანალიზი და ინტერპრეტაცია</a></li>
+<li><a class="file-name file-link" data-id="1FakOw-LOBHV5uyzTFOJibGOTS0Z9sgcq" href="#">3. საზოგადოებრივი ჯანმრთელობის ეპიდზედამხედველობის სისტემის გაცნობა</a></li>
+<li><a class="file-name file-link" data-id="1G0tkn7PGR43NPn_U6cF0gvXC5yS8nGfK" href="#">2. ეპიდემიოლოგიის შესავალი</a></li>
+<li><a class="file-name file-link" data-id="1Q7kJvYBzy4SxiG5YNuS7S462H9eu37Yq" href="#">1. განსაზღვრებები ეპიდემიოლოგიაში</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">კლინიკური უნარ-ჩვევები 5</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1rPSQqpvt_NcWS-EMGWrE-gCvvkzyCOmU" href="#">სპირომეტრია</a></li>
+<li><a class="file-name file-link" data-id="1j34TYMcbs5B2XZ9Jl8Zz42KpGWHNrKZN" href="#">ინსულტის მენეჯმენტი</a></li>
+<li><a class="file-name file-link" data-id="1qPiHFGdXAdntFs4IivKLV2FB_IFEAZwo" href="#">ინსულტის გადატანის შემდეგ</a></li>
+<li><a class="file-name file-link" data-id="15p8Y1NIj80D-mFmirvaVAOzv0p7fDgXs" href="#">ელექტროკარდიოგრაფია</a></li>
+<li><a class="file-name file-link" data-id="1K0siDdKM9xodsx_6ECF27pOo0_DmGFFA" href="#">ეკგ დიაგნოსტიკა</a></li>
+<li><a class="file-name file-link" data-id="1h3qpdxO6TB68j9pxMCehK5R5iax2QZgP" href="#">ე.კ.გ პათოლოგიები (ქეისები)</a></li>
+<li><a class="file-name file-link" data-id="1BloklTiYvcyMUgEZ20gkzStLK-B0NYTT" href="#">აუსკულტაცია</a></li>
+<li><a class="file-name file-link" data-id="1H8xf1oOIKOV5KsMmt5eRo4lLLUjWJuB6" href="#">არითმიები</a></li>
+<li><a class="file-name file-link" data-id="175EFwepMO_iq8quY7-_Lu-AFV78vH7Y1" href="#">AHA ქეისები ინსულტზე</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">კრიტიკული მდგომარეობის შემდგომი რეაბილიტაცია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1KlRZQ8YrptMHosWuGKCeZfZpEEB-28DZ" href="#">ლექცია N1 – ინტენსიური თერაპია</a></li>
+<li><a class="file-name file-link" data-id="1LN5GF8BxT2BBuxlJ872JsR4Tf2Ux_98k" href="#">ლექცია N2 – გულ–სისხლძარღვთა მწვავე უკმარისობა</a></li>
+<li><a class="file-name file-link" data-id="1b2T5cMXY5hCKakwxb9SKt8Bn1l4ZwsaB" href="#">ლექცია N3 – ინვაზიური მონიტორინგი</a></li>
+<li><a class="file-name file-link" data-id="1e6iznJJpDRk4fRSzuGhOyxA-VDHEQCML" href="#">ლექცია N4 – ჰემოდინამიკის ოპტიმიზაცია</a></li>
+<li><a class="file-name file-link" data-id="1minnltw-zOYAu45SapjKiwanemqo4fuc" href="#">ლექცია N5 – სუნთქვის მწვავე უკმარისობა - მოკლე</a></li>
+<li><a class="file-name file-link" data-id="1minnltw-zOYAu45SapjKiwanemqo4fuc" href="#">ლექცია N5 – სუნთქვის მწვავე უკმარისობა - მოკლე</a></li>
+<li><a class="file-name file-link" data-id="1-QnnSFQwhGhjI1hqOjqkvd2vUM6KdL39" href="#">ლექცია N6 - ARDS</a></li>
+<li><a class="file-name file-link" data-id="1kVegORt2-3Y46b-eNBTLAd8UUBMuKqRJ" href="#">ლექცია N7 – ხელოვნური სუნთქვის პრინციპები</a></li>
+<li><a class="file-name file-link" data-id="1RbUawVJswLacTFqHTG-qhkUjHnBdGfzh" href="#">ლექცია N11 -თავის ტვინის შეშუპების მართვა</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">მეან-გინეკოლოგია და რეპროდუქტოლოგიის ბლოკი (მეანობა, გინეკოლოგია, რეპროდუქტოლოგია)</div>
+</div>
+<div class="children">
+<ul>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">მეანობა</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1OkUoWZVgOA8-n50f7fSnVRMIv_rlR3Oz" href="#">მეანობა</a></li>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">გინეკოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1GsN5AIDNTAQd83DXKOiNnlGpOdPAf98H" href="#">1. გინეკოლოგიის საგანი</a></li>
+<li><a class="file-name file-link" data-id="1GsyRFQ8Go2CRzCz5uJpZBayTGYGtnNs-" href="#">2. მენსტრუაციული ციკლი</a></li>
+<li><a class="file-name file-link" data-id="19XcDHKKYpp17X-AN_GZAElG4ycSWhBvC" href="#">3. პათოლოგიური სისხლდენა სასქესო გზებიდან</a></li>
+<li><a class="file-name file-link" data-id="1Iq59Dg2CVA8w_wNDAgnI2LofrWMRy_CL" href="#">4. მენჯის ანთებითი დაავადება</a></li>
+<li><a class="file-name file-link" data-id="1DHx3-SHhuqHtq-Trx7qFBP0GappAl99z" href="#">5. ამენორეა</a></li>
+<li><a class="file-name file-link" data-id="1I-vpM2_bDRx6kpmN4DePu5BTr9Cb4eNJ" href="#">6. პოლიცისტური საკვერცხეების სინდრომი</a></li>
+<li><a class="file-name file-link" data-id="1HFOzCeIi5FutpCVwyyF2oPYbNKfSKqda" href="#">7. ჰირსუტიზმი</a></li>
+<li><a class="file-name file-link" data-id="1HmU_6_TXfZgz3NWrtyvWsu2-dWWDfesC" href="#">8. ექტოპიური ორსულობა</a></li>
+<li><a class="file-name file-link" data-id="1IBt-wNvTTcaM3be870BgnLxTXLhc6-ig" href="#">9. ტკივილი მენჯის არეში</a></li>
+<li><a class="file-name file-link" data-id="1Hdg3buSn7aFMzOc1jCi2krVsWskkPiXB" href="#">10. ქვემო სასქეზო გზების ინფექციები</a></li>
+<li><a class="file-name file-link" data-id="1IBuixoQt64rZDqsrF_laMWQm0j616YpB" href="#">12. ოპერაციული გინეკოლოგია</a></li>
+<li><a class="file-name file-link" data-id="1IPf7NhKIb846hZMUf51yjSuSIshDxj07" href="#">13. გენიტალური ტრაქტის კეთილთვისებიანი დაავადებები</a></li>
+<li><a class="file-name file-link" data-id="1GuwHO0JKwzbLDJ2kehditdCpRWCf2j0R" href="#">14. ენდომეტრიოზი</a></li>
+<li><a class="file-name file-link" data-id="1I641zB9w7RpwD_KOxCPYaqx6OCEXgFy_" href="#">15. შარდის შეუკავებლობა და სასქესო ორგანოების პროლაფსი</a></li>
+<li><a class="file-name file-link" data-id="1I5H0N4iQHtsGq-VF0vJN9bUcYI832_RD" href="#">16. აბორტი</a></li>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">რეპროდუქტოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1NTBx2eweQwD7lYC-ni80YQFQcR2AOcDk" href="#">ჰიპერპროლაქტინემია</a></li>
+<li><a class="file-name file-link" data-id="1UE8409vG88HrPCsdNYOk7qJIi_sW2aSK" href="#">მენსტრუაციის წინა სინდრომი-PMS</a></li>
+<li><a class="file-name file-link" data-id="12PZURHxJSFVut6KtvsV_Lg77A-s1Cmn_" href="#">მამაკაცის უნაყოფობა</a></li>
+<li><a class="file-name file-link" data-id="1qQioyg23yx1ii3xy8MUZpy8re03LkktS" href="#">კონტრაცეფცია - 1 - თსუ</a></li>
+<li><a class="file-name file-link" data-id="1aTlW_3FEpjWrQCecmBwPvomPf_JTcgyU" href="#">კონტრაცეფცია - 2 - თსუ</a></li>
+<li><a class="file-name file-link" data-id="1xJHRPamp1WGpcP45q5jx12urdoGCSP6v" href="#">ადრენოგენიტალური-სინდრომი-აგს</a></li>
+<li><a class="file-name file-link" data-id="1GTs2TRPdt5gV1PeQceZvE2YYK193glxW" href="#">2. რეპროდუქციული სისტემის ანთებითი დაავადებები</a></li>
+<li><a class="file-name file-link" data-id="1GmLFipOACoeYV3zTsQIw7tTLxGPYBa8_" href="#">5. უნაყოფობა</a></li>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ნევროლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1OSrjjo4KtoIcbFuyAqt5rV2ZrX4wWdol" href="#">კლინიკური ნევროლოგია</a></li>
+<li><a class="file-name file-link" data-id="18IUMrAYrLl4HjzvSscR_mP5j5Fw7KRhk" href="#">ზოგადი ნევროლოგია</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ნეიროქირურგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1UpUxzXyYhPINwNZXc1KiUFZ08XXw-qvt" href="#">ნეიროქირურგია</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ონკოლოგია და პალიატიური მზრუნველობა</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1XbYj6MYP3omC6N6N3OHEyH3E9mPIw0r1" href="#">პალიატიური მზრუნველობა (დიმიტრი კორძაია)</a></li>
+<li><a class="file-name file-link" data-id="15tmbggNOmACbTaByUhBViKVJC7eoP9_B" href="#">ონკოლოგია (რ. ღვამიცავა, მ. შავდია)</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">პედიატრია</div>
+</div>
+<div class="children">
+<ul>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">წიგნი</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1LZ9PHlkqNvZFvaAVIiRotFBPHA_SzheC" href="#">პედიატრია</a></li>
+</ul>
+</div>
+</li>
+<div class="children">
+<ul></ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">პრეზენტაციები</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1xPMStEJX03_lq8bwUhljx7L0s_UGUCWD" href="#">1. ახალშობილი</a></li>
+<li><a class="file-name file-link" data-id="1MIiUsgiIZYebKC9OsB9VIhlpV_pnOJWA" href="#">1. დისადაპაციური სინდრომები</a></li>
+<li><a class="file-name file-link" data-id="1LucSffKXfQaTT16kgbrBAA02Lp-6wgZ7" href="#">1. ლექცია 1</a></li>
+<li><a class="file-name file-link" data-id="1GwPQwmBpU2VooBICtT_1tAR7e79C8szo" href="#">1. ახალშობილის კლინიკური შეფასება</a></li>
+<li><a class="file-name file-link" data-id="1MHvQ_RXdsC3Wcqt3c7HVqYT9QzLNZFlV" href="#">2. TORCH ინფექციები</a></li>
+<li><a class="file-name file-link" data-id="1Lq1hSXXvZrush0uxx6B8rxWVF8EzD2wQ" href="#">3. ნეონატოლოგია, ზოგადი</a></li>
+<li><a class="file-name file-link" data-id="1M4sZ2KbGHqxiZr2tiMhP_67EPZcXiXw4" href="#">4. ჩვილ ბავშვთა კვება</a></li>
+<li><a class="file-name file-link" data-id="1EKYxOUKuYvF6yajHIgk0CpMLHocG7vSh" href="#">5. ახალშობილთა სიყვითლე</a></li>
+<li><a class="file-name file-link" data-id="1_lXd8xJoY6FaFCIKUIoM0IjEUoGdYrzH" href="#">6. ცხელება</a></li>
+<li><a class="file-name file-link" data-id="1_tQHz35vuLeYV_Jt8w0AoT--h-QbHucB" href="#">7. რესპირატორული დისტრეს სინდრომი</a></li>
+<li><a class="file-name file-link" data-id="1QqZquAQ90VymdneWYRZGmOFvqVpVsYOx" href="#">8. კრუპი</a></li>
+<li><a class="file-name file-link" data-id="1_MfxAmg7rPy5CF5riBkKS5P514m0uLB2" href="#">9. ანტიბიოტიკები</a></li>
+<li><a class="file-name file-link" data-id="1MQt5pItme_cUOoqEvqfxyAj-vD2YhaQf" href="#">10. ხველა</a></li>
+<li><a class="file-name file-link" data-id="1FkHRCIwf0oN-XNzijApBhwAeweBmih9c" href="#">11. მწვავე ბრონქიტი</a></li>
+<li><a class="file-name file-link" data-id="1nBiI-t8o76Zn-PjILqEHkVkVLcVd6VpA" href="#">12. ბრონქიოლიტი</a></li>
+<li><a class="file-name file-link" data-id="1n5h_EoKNHqXoHiowr1CUglFMGcMNY6FO" href="#">13. პნევმონია</a></li>
+<li><a class="file-name file-link" data-id="1Qz04THucWBwa1EJVI-0d19SotZ9F3BpX" href="#">14. მიკრობიოტა</a></li>
+<li><a class="file-name file-link" data-id="1xs9J334MvKAceD6G1IK1zkSGNPtnrhYI" href="#">15. ატოპიური დერმატიტი</a></li>
+<li><a class="file-name file-link" data-id="1M6CBVlUWofK_PYub3laZ83v6bVtXF8y3" href="#">16. კვებითი ალერგია</a></li>
+<li><a class="file-name file-link" data-id="1grLntRY8OCJOqRwDaO0mjdjtsGnCZ2tj" href="#">17. ბრონქული ასთმა</a></li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">პროფესიული დაავადებები</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1KWsS9KDi8kKjX5Cz7sfGyWrQof3T8AMD" href="#">5. საწარმოო ხმაურით გამოწვეული პროფ. დაავადება</a></li>
+<li><a class="file-name file-link" data-id="1KS2wcSlnxM0fIvgNsra3zDa2nx62CIv1" href="#">5. დეკომპრესიული დაავადება</a></li>
+<li><a class="file-name file-link" data-id="1KAnUn2Zk-L6rckjNTj159qToFg1zzJo2" href="#">5. მაიონიზებელი გამოსხივებით გამოწვეულ პროფესიული დაავადება</a></li>
+<li><a class="file-name file-link" data-id="1K7F_64h-65Wm3RA9_T1aFyhqiQjzpYSI" href="#">5. მზის დაკვრა და მოყინვა</a></li>
+<li><a class="file-name file-link" data-id="1K3QOBJ8YOTSOzuSwOSK3RRnXWMtHh0Xt" href="#">5. ნეიროტროპული მოქმედების შხამებით (ვერცხლისწყალი, მანგანუმი) გამოწ. ინტოქსიკაცია</a></li>
+<li><a class="file-name file-link" data-id="1KTrOgjZlPutODqn0xzXqa6BPPyiCFPLx" href="#">3. სასუნთქი სისტემის პროფესიული დაავადებები</a></li>
+<li><a class="file-name file-link" data-id="1JzgMBCXW96ryImHXKISvHuDc4tmligtx" href="#">4. საწარმოო გარემოს ფიზიკური ფაქტორებით გამოწვეული პროფ. დაავადებები</a></li>
+<li><a class="file-name file-link" data-id="1JvvG5wvmIcBMld001DAGKWMWv1_6G8Uw" href="#">4. პროფესიული ბრონქული ასთმა</a></li>
+<li><a class="file-name file-link" data-id="1KStZl2Vb9ysh_efVPp8_k3qb711Ifa5W" href="#">2. პნევმოკონიოზი</a></li>
+<li><a class="file-name file-link" data-id="1oOP3iaL0E3fco0lkHjcN4BzMv8uElrsV" href="#">1. პროფესიული დაავადებები</a></li>
+<li><a class="file-name file-link" data-id="1JXHPPegKvNXzxWfXDEAH4C4oe-Hcjf2p" href="#">1. პროფესიული დაავადებებით დასნებოვანებულ ავადმყოფთა საექიმო- შრომითი ექსპერტიზა</a></li>
+<li><a class="file-name file-link" data-id="1JjvE4TKkDaM90MVrmPiyHq50oygvAMNp" href="#">1. პროფესიული დაავადებები - შესავალი</a></li>
+<li><a class="file-name file-link" data-id="1JjCQ3FRGNa2Wc8wC-XRtWeApg_HqbJg3" href="#">1. სამრეწველო ტოქსიკოლოგია</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ტრავმატოლოგია/ორთოპედია</div>
+</div>
+<div class="children">
+<ul>
+  <li><a class="file-name file-link" data-id="1Gar9gOOevVoX_shQDnX2s_kM7Qra8KpN" href="#">ტრავმატოლოგია/ორთოპედია</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">უროლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1C7GwMsGSThI4Roxl47ln9x86ynS3RMgp" href="#">შარდსასქესო სისტემის ანომალიები</a></li>
+<li><a class="file-name file-link" data-id="1836vwaMNsQMpGSwULxoOMK1dZv2ZHVLR" href="#">Urology - A Handbook for Medical Students</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">შინაგანი მედიცინა 3</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1MYqpaev7yJgcH9YNon-Xskf3eCTeK9uu" href="#">დიაგნოსტიკური ძიება შინაგან სნეულებათა კლინიკაში - გიორგი ქავთარაძე</a></li>
+                                            </ul>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+
+                        <!-- VI კურსი -->
+                        <li class="node year" data-type="year">
+                            <div class="label" tabindex="0">
+                                <div class="arrow"></div>
+                                <div class="year-label">VI კურსი</div>
+                            </div>
+                            <div class="children">
+                                <ul>
+                                    <li class="node subject" data-type="subject">
+                                        <div class="label" tabindex="0">
+                                            <div class="arrow"></div>
+                                            <div class="semester-label">ანესთეზიოლოგია-რეანიმაცია</div>
+                                        </div>
+                                        <div class="children">
+                                            <ul>
+                                                <li><a class="file-name file-link" data-id="1JmuRR630Gns5-lusCmveymSbPv5vAEVn" href="#">Морган Дж.Э. - Клиническая анестезиология. 1-Бином (2017)</a></li>
+                                                <li><a class="file-name file-link" data-id="1UNAxemSYaxtOuIfGlNLfllK3Xu9nCvHy" href="#">John Butterworth, David Mackey, John Wasnick - Morgan and Mikhail's Clinical Anesthesiology, 7th Edition-McGraw Hill _ Medical (2022)</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">გადაუდებელი მედიცინა</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1aMg7fuE_SqUUcbGRxl1uOEIwfJqgZKA9" href="#">Uchebnik_po_voenno-polevoy_khirurgii_1973.pdf</a></li>
+<li><a class="file-name file-link" data-id="1aeMDzhl2xqh5cQxfZ-gGQO_BzFy1rfei" href="#">Emergency War Surgery ( PDFDrive ) (1).pdf</a></li>
+<li><a class="file-name file-link" data-id="1WD6fTVYcyIo5NWkGYFYUREznGu3pY39l" href="#">Sabiston Textbook of Surgery - Townsend, 21ed, 2023.pdf</a></li>
+<li><a class="file-name file-link" data-id="1WXPupL-9WFGtIMmyXUV8d-fA0BioGsyb" href="#">Schwartzs Principles of Surgery, 10th Ed, 2014 (2).pdf</a></li>
+<li><a class="file-name file-link" data-id="1UyQsEyw_6S72U7v0U0rnTgVUr061OFNZ" href="#">Voenno-polevaya_khirurgia_v_VOV_2000.pdf</a></li>
+<li><a class="file-name file-link" data-id="1q4gnUFmPf0fyt-TIkWhe1ZsZC9oP3r0A" href="#">Военно-полевая хирургия (Е.К. Гуманенко).pdf</a></li>
+<li><a class="file-name file-link" data-id="1Ve9pAoP-eaXtqR_3bUicEIGKzJu5QrZI" href="#">Военно-полевая хирургия (Жианну, Балдан).pdf</a></li>
+<li><a class="file-name file-link" data-id="1aPaCDa_RZYMSA-nNcIjyB_d_wLzxSZB_" href="#">Военно-полевая хирургия.pdf</a></li>
+<li><a class="file-name file-link" data-id="1NCwkktR1GFvt4bUXzXx-GkavJ34oknRG" href="#">Военно_полевая_хирургия_Гуманенко_Е_К_,_Антипенко_В_С_,_Бадалов.pdf</a></li>
+<li><a class="file-name file-link" data-id="1JvCBwGUud3RtZGEgUhunKEH082KjJxoK" href="#">Начала военно полевой хирургии</a></li>
+<li><a class="file-name file-link" data-id="1uYbV3rLGejbKgtJfqbdKrepcDfxsKXmj" href="#">Наглядная хирургия - Пирс Грейс, 2008.pdf</a></li>
+<li><a class="file-name file-link" data-id="1vfoJ2BGAtoIknxIPQq_bneskYsV6fgzW" href="#">Трансплантология_и_искусственные_органы_Учебник_С_В_Готье,_О_Е_Гичкун</a></li>
+<li><a class="file-name file-link" data-id="1lr6jNk8VTs8T9kdhMUqesugX22qhsacp" href="#">Указания по военно-полевой хирургии 2013</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">გერიატრია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1oKCC4qKJkeTF85xX66NyOZSSC7GE5XIh" href="#">კლინიკური გერიატრიის საფუძვლები</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">დერმატოლოგია-ვენეროლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1rJjsD8qOmkmEDjp9dhMvGmyqECFI7ubA" href="#">დერმატოლოგია</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">კლინიკური პრაქტიკა - გინეკოლოგია</div>
+<div class="children">
+<ul></ul>
+</div>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">კლინიკური პრაქტიკა - მეანობა</div>
+<div class="children">
+<ul></ul>
+</div>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">კლინიკური პრაქტიკა - რადიოლოგია</div>
+<div class="children">
+<ul></ul>
+</div>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">კლინიკური პრაქტიკა - ქირურგია</div>
+<div class="children">
+<ul></ul>
+</div>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">კლინიკური პრაქტიკა - შინაგანი მედიცინა</div>
+<div class="children">
+<ul></ul>
+</div>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">კლინიკური ტოქსიკოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">წიგნი</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1MAVNO3hC29HIk9tItuH8qmjLWIFR7D4R" href="#">1. კლინიკური ტოქსიკოლოგია</a></li>
+<li><a class="file-name file-link" data-id="1gFPMIZ5K5zEP386YAVzFFQCJ_E1AhxGW" href="#">2. გ. კაციტაძე, ტოქსიკოლოგია</a></li>
+</ul>
+</div>
+</li>
+<div class="children">
+<ul></ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">პრეზენტაციები</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1T8tIqqDBog-MGe3ndLaT0uLq-NXQJ_Tl" href="#">1. კლინიკური ტოქსიკოლოგია (შესავალი)</a></li>
+<li><a class="file-name file-link" data-id="1SwZGbasz8XKsYdx_HHV3pXYilAxbyWFU" href="#">2. ასპირინით მოწამვლი</a></li>
+<li><a class="file-name file-link" data-id="1WOFrDL_mmOI1kJtYn7cCXCBQgxZq488p" href="#">3. აცეტამინოფენით მოწამვლა</a></li>
+<li><a class="file-name file-link" data-id="1RG27Lc9qpoXBnGEuMprT0JBsa5cnYqMC" href="#">4. შხამქიმიკატებით მწვავე მოწამვლა</a></li>
+<li><a class="file-name file-link" data-id="1mKk9yuKj_bd-bYRfYit7Fw-_o1zXUhOM" href="#">5. ნარკოტიკული საშუალებებით მოწამვლა</a></li>
+<li><a class="file-name file-link" data-id="1XconX6T-4BtoU94TTjk77QtF3i0TG6Br" href="#">6. ანტიქოლინერგული სინდრომი</a></li>
+<li><a class="file-name file-link" data-id="1kgfB_ncnWbSJb0iwWRQuSOUhuQsp_3zO" href="#">7. გულ-სისხლძარღვთა სისტემაზე მომქმედი საშუალებებით მოწამვლა</a></li>
+<li><a class="file-name file-link" data-id="1aW4EOjDiK23nRIkeNOPotUHPimQ2lk1b" href="#">8. მხუთავი აირით მოწამვლა</a></li>
+<li><a class="file-name file-link" data-id="1x9Ay5PbVZsBwOHFpA0O4TTThbzyJT6Si" href="#">9. ალკოჰოლით და მისი სუროგატებით მოწამვლა</a></li>
+<li><a class="file-name file-link" data-id="1NsLPFtwyrVDbNCjMBfbWWaSt_MeE1PEF" href="#">10. გველის შხამით მოწამვლა</a></li>
+<li><a class="file-name file-link" data-id="1u80RJvAi6xzKrLFOW5qApXSEM5rV9gIp" href="#">11. შხამიანი სოკოებით მწვავე მოწამვლა</a></li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ოტორინოლარინგოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1y1Xjd33VQ7MFCdxvR5AgYVlHjJYySz8x" href="#">ოტორინოლარინგოლოგია</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ოფთალმოლოგია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1Ai8bX9N2lfv7BrLLoIz9bbO_q7fqOFFx" href="#">ოფთალმოლოგია</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">სამედიცინო რეაბილიტაცია</div>
+<div class="children">
+<ul></ul>
+</div>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">საოჯახო მედიცინა</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="16e8LjO0nkNGVaBqfZh_NQQAcZPtzPrT9" href="#">ლექცია 1 - საოჯახო მედიცინა</a></li>
+<li><a class="file-name file-link" data-id="1-8JbdHrZMhnnJT4UE6Fp43xv6dI22cvs" href="#">ლექცია 2 - პრევენცია</a></li>
+<li><a class="file-name file-link" data-id="1-E6CmkxecojZ9b3FdVQO9L0EUjyy2fK5" href="#">ლექცია 3 - კომუნიკაცია, კონსულტაცია</a></li>
+<li><a class="file-name file-link" data-id="1-Y5owCzPwNugJBsQNLsFD8fYJYl59VLj" href="#">ლექცია 4 - ჰიპერტენზია</a></li>
+<li><a class="file-name file-link" data-id="1-m7iz9mJEb7pkjx2JcflSupzjlx7Y3fq" href="#">ლექცია 4 - გულის იშემიური დაავადება (გიდ)</a></li>
+<li><a class="file-name file-link" data-id="1-qVTXoIdvAgS-HVEMgSKnCPe-FLmnByy" href="#">ლექცია 5 - შაქრიანი დიაბეტი</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">სასამართლო მედიცინა</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1rLeCEuoT9kLOfUM4cpgXo4dnvez7KI8T" href="#">სასამართლო მედიცინა</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ტკივილის მართვის ასპექტები და სამედიცინო მიზნით ოპიოიდების გამოყენების ბარიერები</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1mHUetBtWdds3JHW453PfMmlZmqBgFY0l" href="#">4. ტერმინოლოგია</a></li>
+<li><a class="file-name file-link" data-id="1-I1U0JEXbPVFT_lP7JyBPgIo_-yMYwy_" href="#">5. ბარიერები</a></li>
+<li><a class="file-name file-link" data-id="1-BuCEDHrvTZ7jyhUPODg_b4CV5mmuxY9" href="#">3. საჭიროების განსაზღვრა</a></li>
+<li><a class="file-name file-link" data-id="1-1U3POrltn_xwZf7PowqnODSOMIkkJQy" href="#">2. უფლება საერთაშორისო</a></li>
+<li><a class="file-name file-link" data-id="1VJT8snJ2xWZVl0Ku-hZrEAeisQ3719YY" href="#">1. ტკივილი</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ფსიქიატრია</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="18DQJNVAmqXBX2Sy20FCuADq3x9uvL3v3" href="#">ფსიქიატრია</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ქირურგია 3</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1xUb2t0f5eX9YskcyKWcLie2cAblyIqwl" href="#">ქირურგიული დაავადებები - გრიგოლია, 2012</a></li>
+</ul>
+</div>
+</li>
+<li class="node subject" data-type="subject">
+<div class="label" tabindex="0">
+<div class="arrow"></div>
+<div class="semester-label">ყურის დაავადებები და მასთან დაკავშირებული ინტრაკრანიალური გართულებების დიგნოსტიკა და მართვა</div>
+</div>
+<div class="children">
+<ul>
+<li><a class="file-name file-link" data-id="1-QK1TO-p-rwp1gN89i4D69uuHfjY5GsY" href="#">3. შიგნითა ყურის დაავადებები</a></li>
+<li><a class="file-name file-link" data-id="1-Mza8n6eqtkjee-XzNfNtJ2pw4-2xyQ7" href="#">1. ელექტრონული ბაზები</a></li>
+<li><a class="file-name file-link" data-id="1-KUVTW1jI2NvJ0QjHwN2RyRWvFiTYDhk" href="#">1. გარეთა ყურის დაავადებები</a></li>
+<li><a class="file-name file-link" data-id="1-O1tc1ZTvPoTbpojDBJZPqFdV-cloZ2B" href="#">2. შუა ყურის დაავადებები</a></li>
+<li><a class="file-name file-link" data-id="1-S51eIe4y2QGS-egh0cK33XhKT3-7A4B" href="#">1. ყურის დაავადებები და მასთან დაკავშირებული ინტრაკრანიალური გართულებების დიგნოსტიკა და მართვა - ანატომია</a></li>
+                                            </ul>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+
+                    </ul>
+                </nav>
+            </aside>
+    <div class="divider" id="divider"></div>
+            <div class="viewer-area">
+                <div id="viewer-placeholder" tabindex="0">არჩეული საგნის ფაილი გამოჩნდება აქ!</div>
+                <iframe id="viewer-frame" style="display:none" title="Document viewer"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.tree .label').forEach(label => {
+            label.addEventListener('click', () => {
+                const node = label.parentElement;
+                node.classList.toggle('open');
+            });
+            label.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    label.click();
+                }
+            });
+        });
+
+        document.querySelectorAll('.file-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const fileId = this.getAttribute('data-id');
+                const fileName = this.textContent;
+                const viewerFrame = document.getElementById('viewer-frame');
+                const viewerFileName = document.getElementById('viewer-file-name');
+                document.getElementById('viewer-placeholder').style.display = 'none';
+                viewerFrame.style.display = 'block';
+                viewerFileName.textContent = fileName;
+                viewerFrame.src = "https://drive.google.com/file/d/" + fileId + "/preview";
+            });
+        });
+    </script>
+    
+<script>
+const divider = document.getElementById("divider");
+const sidebar = document.getElementById("sidebar");
+
+let isResizing = false;
+
+divider.addEventListener("mousedown", function(e) {
+    isResizing = true;
+    document.body.style.cursor = "col-resize";
+});
+
+document.addEventListener("mousemove", function(e) {
+    if (!isResizing) return;
+    let newWidth = e.clientX; // free movement
+    sidebar.style.flex = "0 0 " + newWidth + "px";
+});
+
+document.addEventListener("mouseup", function() {
+    isResizing = false;
+    document.body.style.cursor = "";
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const tree = document.getElementById('tree');
+    const allNodes = tree.querySelectorAll('.node');
+
+    // Message for no results
+    const noResults = document.createElement('div');
+    noResults.textContent = "ასეთი საგანი/მასალა არ მოიძებნა!";
+    noResults.style.textAlign = 'center';
+    noResults.style.color = '#8B0000';
+    noResults.style.marginTop = '20px';
+    noResults.style.display = 'none';
+    tree.parentNode.appendChild(noResults);
+
+    function clearHighlights() {
+        tree.querySelectorAll('.match').forEach(span => {
+            span.outerHTML = span.innerText;
+        });
+    }
+
+    function highlight(element, query) {
+        const regex = new RegExp(`(${query})`, 'gi');
+        element.innerHTML = element.textContent.replace(regex, '<span class="match">$1</span>');
+    }
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        clearHighlights();
+        noResults.style.display = 'none';
+
+        // Change input text color based on length
+        if (query.length > 0 && query.length < 3) {
+            searchInput.style.color = 'red';
+            allNodes.forEach(node => node.style.display = '');
+            return;
+        } else {
+            searchInput.style.color = ''; // default
+        }
+
+        let foundAny = false;
+
+        allNodes.forEach(node => {
+            const labels = node.querySelectorAll('.year-label, .semester-label, .file-name');
+            let match = false;
+            labels.forEach(label => {
+                if (label.textContent.toLowerCase().includes(query.toLowerCase())) {
+                    highlight(label, query);
+                    match = true;
+                }
+            });
+
+            if (match) {
+                node.style.display = '';
+                foundAny = true;
+                // Open parents
+                let parent = node.parentElement;
+                while (parent && parent !== tree) {
+                    if (parent.classList.contains('children') || parent.classList.contains('node')) {
+                        parent.style.display = '';
+                        if (parent.classList.contains('node')) {
+                            parent.classList.add('open');
+                        }
+                    }
+                    parent = parent.parentElement;
+                }
+            } else {
+                node.style.display = 'none';
+            }
+        });
+
+        if (!foundAny) {
+            tree.style.display = 'none';
+            noResults.style.display = 'block';
+        } else {
+            tree.style.display = '';
+            noResults.style.display = 'none';
+        }
+    });
+});
+</script>
+
+<style>
+.no-select {
+    user-select: none; /* Prevents highlighting */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".node.subject .children ul").forEach(function(ul) {
+        let links = ul.querySelectorAll("a.file-name.file-link");
+        links.forEach(function(link, index) {
+            // Remove any existing numbering
+            link.textContent = link.textContent.replace(/^\d+\.\s*/, "");
+            // Create bold, non-selectable number element
+            let numberSpan = document.createElement("strong");
+            numberSpan.textContent = (index + 1) + ". ";
+            numberSpan.classList.add("no-select");
+            // Add the file name text
+            let fileText = document.createTextNode(link.textContent);
+            // Clear and rebuild link content
+            link.innerHTML = "";
+            link.appendChild(numberSpan);
+            link.appendChild(fileText);
+        });
+    });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Helper to build embed/preview URLs.
+  // Currently builds Google Drive preview URL from data-id.
+  // If your files are hosted elsewhere, change this function.
+  function buildPreviewUrlFromId(fileId) {
+    if (!fileId) return '';
+    // Google Drive public preview URL:
+    return 'https://drive.google.com/file/d/' + encodeURIComponent(fileId) + '/preview';
+    // Alternative that sometimes works: 
+    // return 'https://drive.google.com/uc?export=view&id=' + encodeURIComponent(fileId);
+  }
+
+  // Ensure viewer DOM elements exist (create if missing).
+  let viewerFileName = document.getElementById('viewer-file-name');
+  let viewerFrame = document.getElementById('viewer-frame');
+  const viewerPlaceholder = document.getElementById('viewer-placeholder');
+  let closeBtn = document.getElementById('close-viewer-btn');
+  const viewerArea = document.querySelector('.viewer-area');
+
+  // Create iframe if missing
+  if (!viewerFrame) {
+    viewerFrame = document.createElement('iframe');
+    viewerFrame.id = 'viewer-frame';
+    viewerFrame.style.display = 'none';
+    viewerFrame.style.flex = '1';
+    viewerFrame.style.width = '100%';
+    viewerFrame.style.border = 'none';
+    if (viewerArea) viewerArea.appendChild(viewerFrame);
+    else document.body.appendChild(viewerFrame);
+  }
+
+  // Create close button if missing (and attach it to viewer header if present)
+  if (!closeBtn) {
+    closeBtn = document.createElement('button');
+    closeBtn.id = 'close-viewer-btn';
+    closeBtn.type = 'button';
+    closeBtn.title = 'დახურვა';
+    closeBtn.textContent = '✖';
+    // If viewer header exists, append to it, otherwise put near top-bar
+    const viewerHeader = document.querySelector('.viewer-header');
+    if (viewerHeader) viewerHeader.appendChild(closeBtn);
+    else document.body.appendChild(closeBtn);
+    closeBtn.style.display = 'none';
+  }
+
+  // 1) Number files per subject, make numbers bold and unselectable,
+  //    store original filename in data attribute and set href -> preview url.
+  document.querySelectorAll('.node.subject .children ul').forEach(function (ul) {
+    const links = ul.querySelectorAll('a.file-name.file-link');
+    links.forEach(function (link, i) {
+      // original text (strip any existing numbering)
+      const original = (link.textContent || '').replace(/^\d+\.\s*/, '').trim();
+      link.dataset.filename = original; // keep it available for the viewer header
+
+      // try to build preview URL from data-id; if data-id is already a URL, use it
+      let previewUrl = '';
+      const dataId = link.getAttribute('data-id') || '';
+      if (dataId.startsWith('http://') || dataId.startsWith('https://')) {
+        previewUrl = dataId;
+      } else if (dataId) {
+        previewUrl = buildPreviewUrlFromId(dataId);
+      }
+
+      // set href as fallback so Ctrl+click / right-click -> Open in new tab works
+      if (previewUrl) {
+        link.href = previewUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+      } else {
+        // keep href="#" if no preview URL
+        if (!link.getAttribute('href')) link.setAttribute('href', '#');
+      }
+
+      // remove old content and add: <strong class="no-select">N. </strong> + filename text
+      link.innerHTML = '';
+      const num = document.createElement('strong');
+      num.className = 'no-select';
+      num.textContent = (i + 1) + '. ';
+      link.appendChild(num);
+      link.appendChild(document.createTextNode(original));
+    });
+  });
+
+  // 2) Viewer open/close logic
+  function openFile(previewUrl, filename) {
+    if (!previewUrl) {
+      alert('ფაილის წინაპირობა (preview URL) არ არის ხელმისაწვდომი. შეამოწმეთ data-id ან ფაილის თვალყურისდებას (sharing) პარამეტრები.');
+      return;
+    }
+    if (viewerFileName) viewerFileName.textContent = filename || '';
+    viewerFrame.src = previewUrl;
+    if (viewerPlaceholder) viewerPlaceholder.style.display = 'none';
+    viewerFrame.style.display = 'block';
+    closeBtn.style.display = 'inline';
+  }
+
+  function closeViewer() {
+    if (viewerFileName) viewerFileName.textContent = '';
+    // remove src to stop the iframe from holding the resource
+    viewerFrame.src = '';
+    viewerFrame.style.display = 'none';
+    if (viewerPlaceholder) viewerPlaceholder.style.display = 'flex';
+    closeBtn.style.display = 'none';
+  }
+
+  // Attach click handlers to links
+  document.querySelectorAll('a.file-name.file-link').forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      // allow middle-click or cmd/ctrl+click to open in new tab (default browser behavior)
+      if (e.which === 2 || e.metaKey || e.ctrlKey || e.shiftKey) {
+        // let browser handle it (open in new tab)
+        return;
+      }
+      e.preventDefault();
+      const preview = link.href && link.href !== '#' ? link.href : buildPreviewUrlFromId(link.dataset.id || '');
+      const filename = link.dataset.filename || (link.textContent || '').replace(/^\d+\.\s*/, '').trim();
+      openFile(preview, filename);
+    });
+  });
+
+  // Close button and Esc key
+  closeBtn.addEventListener('click', closeViewer);
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') closeViewer();
+  });
+
+  // Optional: basic feedback if iframe load fails (can't reliably detect cross-origin 404).
+  // We attach an onload handler to at least hide a hypothetical "loading" indicator.
+  viewerFrame.addEventListener('load', function () {
+    // Note: because many preview URLs are cross-origin, we cannot inspect contents or status (CORS).
+    // If the file actually shows a 404 in the iframe, it's usually due to permissions or wrong id.
+  });
+});
+</script>
+
+</body>
+</html>
