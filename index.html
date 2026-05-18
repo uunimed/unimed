@@ -472,45 +472,30 @@
     localStorage.setItem('unimedVisitor', vc);
     document.getElementById('visitorCountSpan').innerText = vc;
 
-    function showEmptyPage(activeElement = null) {
-        const pageName = activeElement ? activeElement.textContent.trim() : '';
-        
-if (pageName === 'ძირითადი სასწავლო მასალები') {
-    fetch('materials.html')
-        .then(response => response.text())
-        .then(data => {
-            // ამოიღეთ iframe-ები და Google Drive-ის შეზღუდვები
-            document.getElementById('mainContent').innerHTML = data;
-            // ხელახლა გაუშვით materials.html-ის JavaScript
-            const scripts = document.getElementById('mainContent').querySelectorAll('script');
-            scripts.forEach(oldScript => {
-                const newScript = document.createElement('script');
-                newScript.textContent = oldScript.textContent;
-                document.body.appendChild(newScript);
-            });
-        })
-        .catch(error => {
-            document.getElementById('mainContent').innerHTML = '<div class="future-message"><h2>❌ შეცდომა</h2><p>გვერდის ჩატვირთვა ვერ მოხერხდა.</p></div>';
-        });
-}
-        else if (pageName === 'დამატებითი სასწავლო მასალები') {
-            document.getElementById('mainContent').innerHTML = `<div class="future-message"><h2>📚 დამატებითი სასწავლო მასალები</h2><p>აქ განთავსდება დამატებითი მასალები.</p></div>`;
-        }
-        else if (pageName === 'საგამოცდო მასალები') {
-            document.getElementById('mainContent').innerHTML = `<div class="future-message"><h2>📝 საგამოცდო მასალები</h2><p>აქ განთავსდება საგამოცდო მასალები.</p></div>`;
-        }
-        else if (pageName === 'სტუდენტებისთვის სასწავლო კონსპექტები') {
-            document.getElementById('mainContent').innerHTML = `<div class="future-message"><h2>📖 სტუდენტებისთვის სასწავლო კონსპექტები</h2><p>აქ განთავსდება კონსპექტები.</p></div>`;
-        }
-        else {
-            document.getElementById('mainContent').innerHTML = '<div class="empty-page"></div>';
-        }
-        
-        document.querySelectorAll('.dropbtn, .simple-menu-item').forEach(el => el.classList.remove('active-menu'));
-        if (activeElement) {
-            activeElement.classList.add('active-menu');
-        }
+function showEmptyPage(activeElement = null) {
+    const pageName = activeElement ? activeElement.textContent.trim() : '';
+    
+    if (pageName === 'ძირითადი სასწავლო მასალები') {
+        window.location.href = "materials.html";
     }
+    else if (pageName === 'დამატებითი სასწავლო მასალები') {
+        document.getElementById('mainContent').innerHTML = `<div class="future-message"><h2>📚 დამატებითი სასწავლო მასალები</h2><p>აქ განთავსდება დამატებითი მასალები.</p></div>`;
+    }
+    else if (pageName === 'საგამოცდო მასალები') {
+        document.getElementById('mainContent').innerHTML = `<div class="future-message"><h2>📝 საგამოცდო მასალები</h2><p>აქ განთავსდება საგამოცდო მასალები.</p></div>`;
+    }
+    else if (pageName === 'სტუდენტებისთვის სასწავლო კონსპექტები') {
+        document.getElementById('mainContent').innerHTML = `<div class="future-message"><h2>📖 სტუდენტებისთვის სასწავლო კონსპექტები</h2><p>აქ განთავსდება კონსპექტები.</p></div>`;
+    }
+    else {
+        document.getElementById('mainContent').innerHTML = '<div class="empty-page"></div>';
+    }
+    
+    document.querySelectorAll('.dropbtn, .simple-menu-item').forEach(el => el.classList.remove('active-menu'));
+    if (activeElement) {
+        activeElement.classList.add('active-menu');
+    }
+}
 
     document.getElementById('homeLogo').addEventListener('click', () => {
         document.getElementById('mainContent').innerHTML = '<div class="empty-page"></div>';
