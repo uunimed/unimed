@@ -472,11 +472,13 @@
     localStorage.setItem('unimedVisitor', vc);
     document.getElementById('visitorCountSpan').innerText = vc;
 
-function showEmptyPage(activeElement = null) {
-    const pageName = activeElement ? activeElement.textContent.trim() : '';
+function showEmptyPage(activeElement = null, pageNameFromLink = null) {
+    // თუ pageNameFromLink გადმოგვეცა (სუბმენიუდან), გამოვიყენოთ ის
+    const pageName = pageNameFromLink || (activeElement ? activeElement.textContent.trim() : '');
     
     if (pageName === 'ძირითადი სასწავლო მასალები') {
         window.location.href = "materials.html";
+        return;
     }
     else if (pageName === 'დამატებითი სასწავლო მასალები') {
         document.getElementById('mainContent').innerHTML = `<div class="future-message"><h2>📚 დამატებითი სასწავლო მასალები</h2><p>აქ განთავსდება დამატებითი მასალები.</p></div>`;
@@ -502,15 +504,17 @@ function showEmptyPage(activeElement = null) {
         document.querySelectorAll('.dropbtn, .simple-menu-item').forEach(el => el.classList.remove('active-menu'));
     });
 
-    document.querySelectorAll('.dropdown-content a').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const parentDropdown = link.closest('.dropdown');
-            const parentBtn = parentDropdown ? parentDropdown.querySelector('.dropbtn') : null;
-            showEmptyPage(parentBtn);
-        });
+document.querySelectorAll('.dropdown-content a').forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const pageName = link.getAttribute('data-page');
+        if (pageName === 'ძირითადი სასწავლო მასალები') {
+            window.location.href = "materials.html";
+        } else {
+            showEmptyPage(null, pageName);
+        }
     });
-
+});
     document.querySelectorAll('.simple-menu-item').forEach(btn => {
         btn.addEventListener('click', (e) => {
             showEmptyPage(btn);
