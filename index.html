@@ -505,35 +505,50 @@ function showEmptyPage(activeElement = null, pageNameFromLink = null) {
     });
 
 document.querySelectorAll('.dropdown-content a').forEach(link => {
-    link.addEventListener('click', (e) => {
+    link.addEventListener('click', async (e) => {
         e.preventDefault();
         const pageName = link.getAttribute('data-page');
+        
         if (pageName === 'ძირითადი სასწავლო მასალები') {
-            window.location.href = "materials.html";
+            // ჩავტვირთოთ materials.html იმავე გვერდზე
+            try {
+                const response = await fetch('materials.html');
+                const html = await response.text();
+                
+                // ამოვიღოთ მხოლოდ <body>-ს შიგთავსი (ან კონკრეტული კონტეინერი)
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const content = doc.querySelector('.app') || doc.body;
+                
+                document.getElementById('mainContent').innerHTML = '';
+                document.getElementById('mainContent').appendChild(content);
+                
+                // გადავატაროთ materials.html-ის სკრიპტები
+                const scripts = doc.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    if (oldScript.src) {
+                        newScript.src = oldScript.src;
+                    } else {
+                        newScript.textContent = oldScript.textContent;
+                    }
+                    document.body.appendChild(newScript);
+                });
+                
+            } catch (error) {
+                console.error('ვერ მოხერხდა materials.html-ის ჩატვირთვა:', error);
+                document.getElementById('mainContent').innerHTML = `<div class="future-message"><h2>❌ შეცდომა</h2><p>ვერ მოხერხდა გვერდის ჩატვირთვა.</p></div>`;
+            }
         } else {
             showEmptyPage(null, pageName);
         }
+        
+        // active menu-ს მონიშვნა
+        document.querySelectorAll('.dropbtn, .simple-menu-item').forEach(el => el.classList.remove('active-menu'));
+        const parentBtn = link.closest('.dropdown')?.querySelector('.dropbtn');
+        if (parentBtn) parentBtn.classList.add('active-menu');
     });
 });
-    document.querySelectorAll('.simple-menu-item').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            showEmptyPage(btn);
-        });
-    });
-
-    document.querySelectorAll('.dropbtn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            showEmptyPage(btn);
-        });
-    });
-
-    document.querySelectorAll('[data-footer]').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            showEmptyPage();
-        });
-    });
 </script>
 </body>
 </html>
