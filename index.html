@@ -336,37 +336,6 @@
             .footer-note { flex-direction: column; text-align: center; }
             .footer-contact p { justify-content: center; }
         }
-        /* დაამატეთ materials.html-ის სტილების ბოლოს */
-body {
-    margin: 0;
-    padding: 0;
-    background: #f0f6f9; /* index.html-ის ფონთან შესატყვისად */
-}
-
-.app {
-    height: auto;
-    min-height: 80vh;
-}
-
-.top-bar {
-    background: #fafafa;
-    border-radius: 12px 12px 0 0;
-}
-
-.content-row {
-    height: auto;
-    min-height: 65vh;
-}
-
-.sidebar {
-    background: #ffffff;
-    border-radius: 0 0 0 12px;
-}
-
-.viewer-area {
-    background: #ffffff;
-    border-radius: 0 0 12px 0;
-}
     </style>
 </head>
 <body>
@@ -542,16 +511,15 @@ document.querySelectorAll('.dropdown-content a').forEach(link => {
         
         if (pageName === 'ძირითადი სასწავლო მასალები') {
             document.getElementById('mainContent').innerHTML = `
-                <div style="background: #f0f6f9; padding: 20px; border-radius: 0; margin: 0;">
-                    <iframe src="materials.html" style="
-                        width: 100%; 
-                        height: 85vh; 
-                        border: none; 
-                        border-radius: 0;
-                        background: #fafafa;
-                        box-shadow: none;
-                    "></iframe>
-                </div>
+                <iframe src="materials.html" style="
+                    width: 100%; 
+                    height: calc(100vh - 160px);
+                    min-height: 500px;
+                    border: none; 
+                    display: block;
+                    margin: 0;
+                    padding: 0;
+                "></iframe>
             `;
         } else {
             showEmptyPage(null, pageName);
